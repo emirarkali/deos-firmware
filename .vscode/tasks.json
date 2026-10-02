@@ -1,0 +1,96 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Zephyr: Build",
+            "type": "shell",
+            "command": "zephyrproject",
+            "args": [
+                "-build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Zephyr: Clean Build",
+            "type": "shell",
+            "command": "zephyrproject",
+            "args": [
+                "-clean"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Zephyr: Flash",
+            "type": "shell",
+            "command": "zephyrproject",
+            "args": [
+                "-flash-only"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Zephyr: Build and Flash",
+            "type": "shell",
+            "command": "zephyrproject",
+            "args": [
+                "-flash"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Zephyr: Clean Build and Flash",
+            "type": "shell",
+            "command": "zephyrproject",
+            "args": [
+                "-clean-flash"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Zephyr: Start OpenOCD Server",
+            "type": "shell",
+            "command": "zephyrproject",
+            "args": [
+                "-debugserver"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "openocd",
+                "pattern": {
+                    "regexp": ".*"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "Open On-Chip Debugger",
+                    "endsPattern": "Listening on port 3333 for gdb connections"
+                }
+            }
+        }
+    ]
+}

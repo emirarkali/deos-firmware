@@ -1,0 +1,3 @@
+source "Kconfig.zephyr"
+
+source "lib/deos_core/Kconfig"

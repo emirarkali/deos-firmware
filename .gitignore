@@ -1,0 +1,6 @@
+build/
+.vscode/*.log
+*.swp
+*~
+build_test/
+*.bak

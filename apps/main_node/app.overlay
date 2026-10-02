@@ -1,0 +1,5 @@
+/*
+ * Zephyr Devicetree Overlay
+ *
+ * Add project-specific devicetree configuration here.
+ */
