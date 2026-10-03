@@ -147,7 +147,20 @@ typedef int (*deos_transport_tx_fn_t)(const deos_message_t *msg);
 int deos_router_register_transport(deos_transport_t transport, deos_transport_tx_fn_t tx_fn);
 
 /**
+ * @brief Lookup function pointer type for dynamic routing.
+ */
+typedef deos_transport_t (*deos_router_lookup_fn_t)(deos_node_id_t destination);
+
+/**
+ * @brief Set the application-defined routing table lookup function.
+ *
+ * @param lookup_fn The lookup function.
+ */
+void deos_router_set_lookup_fn(deos_router_lookup_fn_t lookup_fn);
+
+/**
  * @brief Feed an incoming message from a transport into the DEOS core dispatcher.
+
  *
  * @param msg The received message.
  * @param transport The transport interface it arrived on.

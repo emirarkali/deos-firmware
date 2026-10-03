@@ -5,6 +5,22 @@
 #include <zephyr/drivers/can.h>
 #include <errno.h>
 
+int deos_internal_canfd_tx(const deos_message_t *msg)
+{
+    const struct deos_config *config = deos_get_config();
+    if (!config || !config->can_dev) {
+        return -ENODEV;
+    }
+
+    struct can_frame frame = {0};
+    int ret = deos_encode_frame(msg, &frame);
+    if (ret != 0) {
+        return ret;
+    }
+
+    return can_send(config->can_dev, &frame, K_MSEC(100), NULL, NULL);
+}
+
 LOG_MODULE_REGISTER(deos_tx, LOG_LEVEL_INF);
 
 int deos_send_from_node(

@@ -387,7 +387,7 @@ ZTEST(deos_heartbeat_test, test_01_heartbeat_receive_routes_to_app)
     msg.payload_len = 0;
     
     heartbeat_handler_called = false;
-    deos_dispatch(&msg);
+    deos_dispatch(&msg, DEOS_TRANSPORT_CAN_FD);
     zassert_true(heartbeat_handler_called, "Heartbeat handler should be called");
 }
 

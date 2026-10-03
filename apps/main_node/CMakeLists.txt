@@ -7,6 +7,8 @@ project(deos_firmware)
 
 target_sources(app PRIVATE
     src/main.c
+    src/eth_textual.c
+    src/eth_uros.c
     lib/deos_core/src/deos_core.c
     lib/deos_core/src/deos_rx.c
     lib/deos_core/src/deos_tx.c

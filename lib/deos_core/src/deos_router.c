@@ -8,6 +8,15 @@ LOG_MODULE_REGISTER(deos_router, LOG_LEVEL_INF);
 /* Registry for transport TX callbacks */
 static deos_transport_tx_fn_t transport_tx_registry[DEOS_TRANSPORT_COUNT];
 
+/* Application-defined routing policy lookup */
+static deos_router_lookup_fn_t app_route_lookup = NULL;
+
+void deos_router_set_lookup_fn(deos_router_lookup_fn_t lookup_fn)
+{
+    app_route_lookup = lookup_fn;
+    LOG_DBG("Routing policy lookup function set");
+}
+
 int deos_router_init(void)
 {
     for (int i = 0; i < DEOS_TRANSPORT_COUNT; i++) {
@@ -40,20 +49,14 @@ void deos_route_message(const deos_message_t *msg, deos_transport_t incoming_tra
         return;
     }
 
-    /* Unicast Routing Table */
+    /* Unicast Routing Table (Application Policy) */
     deos_transport_t target_transport = DEOS_TRANSPORT_UNKNOWN;
 
-    switch (msg->destination) {
-        case DEOS_NODE_TEXTUAL:
-            target_transport = DEOS_TRANSPORT_ETH_TEXTUAL;
-            break;
-        case DEOS_NODE_MICRO_ROS:
-            target_transport = DEOS_TRANSPORT_ETH_UROS;
-            break;
-        default:
-            /* For now, assume all other ECUs are on CAN-FD */
-            target_transport = DEOS_TRANSPORT_CAN_FD;
-            break;
+    if (app_route_lookup) {
+        target_transport = app_route_lookup(msg->destination);
+    } else {
+        /* Default fallback if application hasn't provided a routing policy */
+        target_transport = DEOS_TRANSPORT_CAN_FD;
     }
 
     /* Prevent Loopback and check if transport is registered */

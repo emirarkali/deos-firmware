@@ -63,6 +63,7 @@ int deos_init(const struct deos_config *config)
             LOG_ERR("Failed to init router");
             return ret;
         }
+        deos_router_register_transport(DEOS_TRANSPORT_CAN_FD, deos_internal_canfd_tx);
     }
 
     ret = deos_rx_init();

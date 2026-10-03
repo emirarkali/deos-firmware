@@ -87,6 +87,8 @@ int deos_decode_frame(
     const struct can_frame *frame,
     deos_message_t *msg);
 
+int deos_internal_canfd_tx(const deos_message_t *msg);
+
 /*
  * Dispatcher (deos_dispatch.c)
  */
