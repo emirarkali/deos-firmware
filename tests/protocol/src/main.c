@@ -413,3 +413,45 @@ ZTEST(deos_heartbeat_test, test_03_heartbeat_send_fields)
        but if loopback is ready it returns 0. As long as it doesn't return -EINVAL we are good. */
     zassert_not_equal(ret, -EINVAL, "deos_send_heartbeat should build valid fields");
 }
+
+ZTEST_SUITE(deos_response_test, NULL, NULL, NULL, NULL, NULL);
+
+ZTEST(deos_response_test, test_01_response_validation)
+{
+    TC_PRINT("Test: Validate response generation rules and size limits\n");
+    struct deos_config config = { .node_id = DEOS_NODE_STEERING };
+    deos_init(&config);
+    
+    deos_message_t orig = {0};
+    orig.destination = DEOS_NODE_STEERING;
+    orig.source = DEOS_NODE_MAIN_STM32;
+    orig.priority = DEOS_PRIO_CONTROL;
+    orig.message_class = DEOS_CLASS_COMMAND;
+    orig.service = DEOS_SERVICE_STEERING;
+    orig.command = DEOS_CMD_STEERING_SET_TARGET_ANGLE;
+    orig.payload_len = 4;
+    
+    /* 1. SUCCESS response encode (zero-length optional data) */
+    int ret = deos_send_response(&orig, DEOS_RESULT_SUCCESS, NULL, 0);
+    zassert_not_equal(ret, -EINVAL, "Valid zero-length data should pass validation");
+    zassert_not_equal(ret, -EMSGSIZE, "Valid zero-length data should pass validation");
+    
+    /* 2. NOT_ALLOWED response encode */
+    ret = deos_send_response(&orig, DEOS_RESULT_NOT_ALLOWED, NULL, 0);
+    zassert_not_equal(ret, -EINVAL, "NOT_ALLOWED should pass validation");
+    
+    /* 3. response with additional data */
+    uint8_t data[10] = {1, 2, 3};
+    ret = deos_send_response(&orig, DEOS_RESULT_SUCCESS, data, sizeof(data));
+    zassert_not_equal(ret, -EINVAL, "Additional data should pass validation");
+    
+    /* 5. 59-byte maximum optional data */
+    uint8_t max_data[59] = {0};
+    ret = deos_send_response(&orig, DEOS_RESULT_SUCCESS, max_data, 59);
+    zassert_not_equal(ret, -EMSGSIZE, "59 byte data should be allowed");
+    
+    /* 6. >59 byte rejection */
+    uint8_t too_large[60] = {0};
+    ret = deos_send_response(&orig, DEOS_RESULT_SUCCESS, too_large, 60);
+    zassert_equal(ret, -EMSGSIZE, "60 byte data should be rejected");
+}

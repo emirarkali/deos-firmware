@@ -94,3 +94,51 @@ int deos_send(
         payload_len
     );
 }
+
+int deos_send_response(
+    const deos_message_t *original,
+    deos_result_t result,
+    const void *data,
+    uint8_t data_len)
+{
+    const struct deos_config *config = deos_get_config();
+    if (!config) {
+        return -ENODEV;
+    }
+
+    if (!original) {
+        return -EINVAL;
+    }
+
+    /* Maximum optional data is DEOS_MAX_PAYLOAD_LEN - 1 (for result byte) */
+    if (data_len > (DEOS_MAX_PAYLOAD_LEN - 1)) {
+        return -EMSGSIZE;
+    }
+
+    if (data_len > 0 && data == NULL) {
+        return -EINVAL;
+    }
+
+    deos_node_id_t source = original->destination;
+    if (source == DEOS_NODE_BROADCAST) {
+        source = config->node_id;
+    }
+
+    uint8_t payload[DEOS_MAX_PAYLOAD_LEN];
+    payload[0] = (uint8_t)result;
+
+    if (data_len > 0) {
+        memcpy(&payload[1], data, data_len);
+    }
+
+    return deos_send_from_node(
+        source,
+        original->source,
+        original->priority,
+        DEOS_CLASS_RESPONSE,
+        original->service,
+        original->command,
+        payload,
+        data_len + 1
+    );
+}

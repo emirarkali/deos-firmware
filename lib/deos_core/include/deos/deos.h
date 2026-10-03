@@ -117,6 +117,21 @@ int deos_send_heartbeat(void);
  */
 int deos_send_heartbeat_from_node(deos_node_id_t source_node);
 
+/**
+ * @brief Send a generic DEOS response.
+ *
+ * @param original Pointer to the original request/command message.
+ * @param result The result code of the operation.
+ * @param data Optional response data (up to 59 bytes).
+ * @param data_len Length of the optional data.
+ * @return 0 on success, negative error code on failure.
+ */
+int deos_send_response(
+    const deos_message_t *original,
+    deos_result_t result,
+    const void *data,
+    uint8_t data_len);
+
 #ifdef __cplusplus
 }
 #endif

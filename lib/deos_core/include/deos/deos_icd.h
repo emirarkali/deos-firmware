@@ -78,6 +78,13 @@ typedef enum {
 
 /*
  * Message Class Registry
+ * 
+ * REQUEST:   bilgi / durum / işlem sonucu talep eder
+ * RESPONSE:  REQUEST cevabını veya cevap gerektiren transactional operation sonucunu taşır
+ * COMMAND:   çalışma davranışını / gerçek zamanlı kontrolü değiştirir
+ * CONFIG:    çalışma parametrelerini değiştirir
+ * STATUS:    unsolicited durum / telemetry bilgisidir
+ * EVENT:     asynchronous olay / fault bildirimidir
  */
 typedef enum {
     DEOS_CLASS_SAFETY   = 0x0,

@@ -51,11 +51,8 @@ void traction_apply_safety_limits(void)
         // Disable or reduce regen torque limit
     }
     
-    // Limit torque based on BMS discharge limit
-    // (Placeholder logic)
-    if (g_traction_state.torque_limit_raw > g_traction_config.max_current) {
-        g_traction_state.torque_limit_raw = g_traction_config.max_current;
-    }
+    // TODO: Need proper torque-to-current mapping model before clamping torque limit with max_current.
+    // torque_limit_raw is 0.01 % and max_current is 0.1 A, so direct comparison is invalid.
 }
 
 static void traction_control_loop(void *arg1, void *arg2, void *arg3)

@@ -11,10 +11,10 @@ void traction_config_init(void)
     g_traction_config.pid_kp = 100;
     g_traction_config.pid_ki = 10;
     g_traction_config.pid_kd = 5;
-    g_traction_config.max_current = 20000; // 200A
+    g_traction_config.max_current = 2000;  // 200.0 A (scale: 0.1A)
     g_traction_config.max_speed = 3000;    // 30 m/s
     g_traction_config.accel_limit = 500;   // 5 m/s^2
-    g_traction_config.cmd_timeout_ms = 500;
+    g_traction_config.cmd_timeout_ms = 200;
     g_traction_config.pole_pairs = 4;
     g_traction_config.gear_ratio = 1000;   // 10.00
     g_traction_config.wheel_circum_mm = 2000;

@@ -23,6 +23,9 @@ struct traction_app_state {
     uint16_t bms_max_discharge_current_raw;
     uint16_t bms_max_charge_current_raw;
 
+    deos_state_t system_state;
+    deos_mode_t  system_mode;
+
     int64_t last_control_command_ms;
 };
 
