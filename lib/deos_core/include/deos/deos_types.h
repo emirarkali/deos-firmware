@@ -57,10 +57,11 @@ typedef int (*deos_message_handler_t)(const deos_message_t *message, void *user_
  * Transport Type
  */
 typedef enum {
-    DEOS_TRANSPORT_LOCAL,
+    DEOS_TRANSPORT_LOCAL = 0,
     DEOS_TRANSPORT_CAN_FD,
-    DEOS_TRANSPORT_ETHERNET,
-    DEOS_TRANSPORT_LORA
+    DEOS_TRANSPORT_ETH_TEXTUAL,
+    DEOS_TRANSPORT_ETH_UROS,
+    DEOS_TRANSPORT_COUNT
 } deos_transport_t;
 
 /*

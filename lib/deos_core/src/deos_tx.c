@@ -50,6 +50,11 @@ int deos_send_from_node(
         memcpy(msg.payload, payload, payload_len);
     }
 
+    if (config->router_enabled) {
+        deos_dispatch(&msg, DEOS_TRANSPORT_INTERNAL);
+        return 0;
+    }
+
     struct can_frame frame = {0};
     int ret = deos_encode_frame(&msg, &frame);
     if (ret != 0) {

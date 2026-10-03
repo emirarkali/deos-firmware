@@ -132,6 +132,28 @@ int deos_send_response(
     const void *data,
     uint8_t data_len);
 
+/**
+ * @brief Transport TX function pointer type.
+ */
+typedef int (*deos_transport_tx_fn_t)(const deos_message_t *msg);
+
+/**
+ * @brief Register a transport interface for the router.
+ *
+ * @param transport The transport ID.
+ * @param tx_fn The transmit function for this transport.
+ * @return 0 on success.
+ */
+int deos_router_register_transport(deos_transport_t transport, deos_transport_tx_fn_t tx_fn);
+
+/**
+ * @brief Feed an incoming message from a transport into the DEOS core dispatcher.
+ *
+ * @param msg The received message.
+ * @param transport The transport interface it arrived on.
+ */
+void deos_feed_message(const deos_message_t *msg, deos_transport_t transport);
+
 #ifdef __cplusplus
 }
 #endif

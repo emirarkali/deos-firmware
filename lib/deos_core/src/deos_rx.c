@@ -65,7 +65,7 @@ static void deos_rx_thread_func(void *p1, void *p2, void *p3)
             }
 
             /* Valid message, pass to dispatcher */
-            deos_dispatch(&msg);
+            deos_dispatch(&msg, DEOS_TRANSPORT_CAN_FD);
         }
     }
 }

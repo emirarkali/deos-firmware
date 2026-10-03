@@ -92,14 +92,14 @@ int deos_register_handler(
         config->node_id, message_class, service, command, handler, user_data);
 }
 
-void deos_dispatch(const deos_message_t *msg)
+void deos_dispatch(const deos_message_t *msg, deos_transport_t incoming_transport)
 {
     const struct deos_config *config = deos_get_config();
     bool is_local = deos_is_local_node(msg->destination) || (msg->destination == DEOS_NODE_BROADCAST);
 
     /* Router Logic */
-    if (config->router_enabled && !deos_is_local_node(msg->destination)) {
-        deos_route_message(msg, DEOS_TRANSPORT_CAN_FD);
+    if (config->router_enabled && (!deos_is_local_node(msg->destination) || msg->destination == DEOS_NODE_BROADCAST)) {
+        deos_route_message(msg, incoming_transport);
     }
 
     if (!is_local) {
@@ -158,5 +158,12 @@ void deos_dispatch(const deos_message_t *msg)
     if (!handled) {
         LOG_DBG("No handler for Class: 0x%X, Svc: 0x%X, Cmd: 0x%X",
                 msg->message_class, msg->service, msg->command);
+    }
+}
+
+void deos_feed_message(const deos_message_t *msg, deos_transport_t transport)
+{
+    if (msg) {
+        deos_dispatch(msg, transport);
     }
 }

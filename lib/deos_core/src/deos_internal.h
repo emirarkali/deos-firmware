@@ -91,7 +91,7 @@ int deos_decode_frame(
  * Dispatcher (deos_dispatch.c)
  */
 int deos_dispatch_init(void);
-void deos_dispatch(const deos_message_t *msg);
+void deos_dispatch(const deos_message_t *msg, deos_transport_t incoming_transport);
 
 /*
  * Network / System (deos_network.c)
