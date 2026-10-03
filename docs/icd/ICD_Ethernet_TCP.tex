@@ -1,0 +1,123 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[turkish]{babel}
+\usepackage{geometry}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{multirow}
+
+\geometry{
+    a4paper,
+    top=2cm,
+    bottom=2cm,
+    left=2cm,
+    right=2cm
+}
+
+\newcommand{\hex}[1]{\texttt{0x#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{\textbf{DEOS TCP/Ethernet (Textual) ICD}\\
+\large Sürüm 1.0}
+\author{DEOS -- Dokuz Eylül Otonom Sistemler}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Giriş ve Kapsam}
+Bu doküman, DEOS ağındaki bir düğüm (Main Node) ile \textbf{Python Textual Arayüzü (Raspberry Pi vb.)} arasında \textbf{TCP Soket} üzerinden kurulacak haberleşmenin kurallarını ve çerçeve (framing) yapısını tanımlar. TCP protokolü zaten kendi içinde hata denetimi (Checksum) ve paket sırası garantisi sunduğu için, LoRa tarafındaki MAGIC, CRC ve FLAG baytlarına bu arayüzde \textbf{ihtiyaç duyulmaz}.
+
+\section{Bağlantı Özellikleri}
+\begin{itemize}[label=\textbullet]
+    \item \textbf{Roller:} Zephyr (STM32 vb.) kartı \textbf{TCP Server} olarak dinlemede kalır. Textual arayüzü (Python) açıldığı anda \textbf{TCP Client} olarak karta bağlanır.
+    \item \textbf{IP Adresi:} \code{192.168.1.10} (Zephyr için tanımlı varsayılan Statik IP)
+    \item \textbf{Port:} \code{5000} (Varsayılan)
+\end{itemize}
+
+\section{Çerçeve (Frame) Formatı}
+TCP veri akışının nerede başlayıp bittiğini bilmek (Stream Parsing) için her paketin başına sadece \code{Length} bilgisi eklenir. Genel format aşağıdaki gibidir:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{Length} & \textbf{DEOS Common Header} & \textbf{DEOS Payload} \\
+\hline
+1 Byte & 8 Byte (Sabit) & $N$ Byte (Dinamik) \\
+\hline
+\hex{00} - \hex{44} & Priority, Class, Service vb. & Gerçek Veri (Örn: PING ID) \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Alanların Açıklamaları}
+\begin{itemize}[label=\textbullet]
+    \item \textbf{Length (1 Byte):} Geriye kalan DEOS Header ve Payload alanlarının \textbf{toplam byte sayısını} ifade eder. (Örneğin; 8 bayt başlık + 4 bayt Ping id = Length 12 olur).
+    \item \textbf{DEOS Common Header (8 Byte):} Struct'ın dinamik olmayan asıl bilgileridir. Sırasıyla şu 1'er baytlık alanları içerir: \code{priority}, \code{message\_class}, \code{service}, \code{destination}, \code{source}, \code{version}, \code{sequence}, \code{command}.
+    \item \textbf{DEOS Payload ($N$ Byte):} İlgili komutun veri kısmı. Gönderilmeyen boş byte'lar (\code{DEOS\_MAX\_PAYLOAD\_LEN}'den arta kalan kısımlar) hatta aktarılmaz.
+\end{itemize}
+
+\section{Örnek Paket Anatomisi (PING Mesajı)}
+Textual arayüzünden karta yollanacak, içerisinde "69" Ping ID'si bulunan bir mesajın TCP soket üzerinden giden bayt dizilimi şu şekildedir (Toplam 13 Byte):
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|l|c|l|}
+\hline
+\textbf{Byte Indeksi} & \textbf{Alan} & \textbf{Örnek (Hex)} & \textbf{Açıklama} \\
+\hline
+\textbf{0}  & Length & \hex{0C} & 12 Byte (Sonraki 12 byte'ın habercisi) \\
+\textbf{1}  & priority & \hex{01} & DEOS\_PRIO\_NETWORK \\
+\textbf{2}  & message\_class & \hex{01} & DEOS\_CLASS\_NETWORK \\
+\textbf{3}  & service & \hex{01} & DEOS\_SERVICE\_SYSTEM \\
+\textbf{4}  & destination & \hex{06} & DEOS\_NODE\_TEXTUAL \\
+\textbf{5}  & source & \hex{02} & DEOS\_NODE\_GROUND\_CONTROL \\
+\textbf{6}  & version & \hex{01} & Protokol Versiyonu \\
+\textbf{7}  & sequence & \hex{05} & Mesaj Sıra No \\
+\textbf{8}  & command & \hex{01} & DEOS\_CMD\_SYSTEM\_PING \\
+\textbf{9}  & payload[0] & \hex{45} & \multirow{4}{*}{PING ID: 69 (Little Endian)} \\
+\textbf{10} & payload[1] & \hex{00} & \\
+\textbf{11} & payload[2] & \hex{00} & \\
+\textbf{12} & payload[3] & \hex{00} & \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Örnek Python Gönderim Kodu (Client)}
+Aşağıdaki örnek, RPi üzerinden karta 12 baytlık (dinamik) bir PONG mesajının nasıl yollanacağını göstermektedir.
+
+\begin{lstlisting}[language=Python, basicstyle=\ttfamily\small, frame=single]
+import socket
+import struct
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect(("192.168.1.10", 5000))
+
+# DEOS Header alanlari (Ornek degerler)
+priority = 1
+mclass = 1
+service = 1
+dest = 1     # MAIN_NODE
+src = 6      # TEXTUAL_NODE
+ver = 1
+seq = 5
+cmd = 2      # DEOS_CMD_SYSTEM_PONG
+pong_id = 69
+
+# Struct formatinda paketle ('<8BI' = 8 x uint8, 1 x uint32)
+deos_data = struct.pack('<8BI', priority, mclass, service, dest, src, ver, seq, cmd, pong_id)
+
+frame_length = len(deos_data) # 12 Byte hesaplanir
+length_byte = bytes([frame_length])
+
+# Basina uzunlugu ekle ve gonder
+sock.sendall(length_byte + deos_data)
+\end{lstlisting}
+
+\end{document}

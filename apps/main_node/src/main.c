@@ -5,6 +5,7 @@
 
 #include "eth_textual.h"
 #include "eth_uros.h"
+#include "uart_lora.h"
 
 LOG_MODULE_REGISTER(main_node, LOG_LEVEL_INF);
 
@@ -16,6 +17,9 @@ static deos_transport_t main_routing_policy(deos_node_id_t destination)
     }
     if (destination == DEOS_NODE_MICRO_ROS) {
         return DEOS_TRANSPORT_ETH_UROS;
+    }
+    if (destination == DEOS_NODE_GROUND_CONTROL) {
+        return DEOS_TRANSPORT_UART_LORA;
     }
     
     /* Route everything else to the CAN-FD network by default */
@@ -52,6 +56,7 @@ int main(void)
     /* Initialize External Ethernet Interfaces */
     eth_textual_init();
     eth_uros_init(); /* TODO: Implement micro-ROS */
+    uart_lora_init();
 
     /* Start DEOS threads */
     deos_start();

@@ -1,5 +1,31 @@
 /*
- * Zephyr Devicetree Overlay
- *
- * Add project-specific devicetree configuration here.
+ * Zephyr Devicetree Overlay for DEOS Main STM32 Gateway
  */
+
+/ {
+    chosen {
+        zephyr,can-primary = &fdcan1;
+    };
+    
+    aliases {
+        lora-uart = &lpuart1;
+    };
+};
+
+/* Enable Primary CAN (FDCAN1) */
+&fdcan1 {
+    status = "okay";
+    bus-speed = <500000>;
+    bus-speed-data = <2000000>;
+};
+
+/* Disable usart1 to prevent any conflicts with LoRa pins */
+&usart1 {
+    status = "disabled";
+};
+
+/* lpuart1 is configured for PB6/PB7 (LoRa UART) */
+&lpuart1 {
+    status = "okay";
+    current-speed = <115200>;
+};

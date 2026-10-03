@@ -67,7 +67,7 @@ int deos_send_from_node(
     }
 
     if (config->router_enabled) {
-        deos_dispatch(&msg, DEOS_TRANSPORT_INTERNAL);
+        deos_dispatch(&msg, DEOS_TRANSPORT_LOCAL);
         return 0;
     }
 

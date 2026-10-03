@@ -1,0 +1,234 @@
+
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[turkish]{babel}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{titlesec}
+
+% Türkçe babel paketinin "=" karakterini listings seçeneklerinde etkilemesini engeller
+\AtBeginDocument{\shorthandoff{=}}
+
+\geometry{
+    a4paper,
+    top=1.8cm,
+    bottom=1.8cm,
+    left=1.8cm,
+    right=1.8cm
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\renewcommand{\arraystretch}{1.18}
+
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
+
+\lstdefinestyle{cstyle}{
+    language={[ANSI]C},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\bfseries,
+    commentstyle=\itshape,
+    numbers=left,
+    numberstyle=\tiny,
+    numbersep=7pt,
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4
+}
+
+\newcommand{\hex}[1]{\texttt{0x#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{\textbf{DEOS Network \& System Management}\\
+\large Sürüm 0.3}
+\author{DEOS -- Dokuz Eylül Otonom Sistemler}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Doküman tipi:} & Interface Control Document (ICD) \\
+\textbf{Protokol sürümü:} & v1.1 (\hex{11}) \\
+\textbf{Taşıma altyapısı:} & CAN-FD ana omurga \\
+\textbf{Durum:} & ICD Sürüm 0.3 -- v1.1 wire-format revizyonu \\
+\end{tabular}
+\end{center}
+
+
+\section{SYSTEM Service Komutları}
+
+\begin{center}
+\begin{tabular}{c l}
+\toprule
+ID & Symbol \\
+\midrule
+\hex{01} & \code{DEOS\_CMD\_SYSTEM\_GET\_STATE} \\
+\hex{02} & \code{DEOS\_CMD\_SYSTEM\_SET\_STATE} \\
+\hex{03} & \code{DEOS\_CMD\_SYSTEM\_GET\_MODE} \\
+\hex{04} & \code{DEOS\_CMD\_SYSTEM\_SET\_MODE} \\
+\hex{05} & \code{DEOS\_CMD\_SYSTEM\_RESET\_NODE} \\
+\hex{06} & \code{DEOS\_CMD\_SYSTEM\_GET\_NODE\_INFO} \\
+\hex{07} & \code{DEOS\_CMD\_SYSTEM\_HEARTBEAT} \\
+\hex{08} & \code{DEOS\_CMD\_SYSTEM\_PING} \\
+\hex{09} & \code{DEOS\_CMD\_SYSTEM\_PONG} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}[style=cstyle]
+typedef enum
+{
+    DEOS_CMD_SYSTEM_GET_STATE     = 0x01,
+    DEOS_CMD_SYSTEM_SET_STATE     = 0x02,
+    DEOS_CMD_SYSTEM_GET_MODE      = 0x03,
+    DEOS_CMD_SYSTEM_SET_MODE      = 0x04,
+    DEOS_CMD_SYSTEM_RESET_NODE    = 0x05,
+    DEOS_CMD_SYSTEM_GET_NODE_INFO = 0x06,
+    DEOS_CMD_SYSTEM_HEARTBEAT     = 0x07,
+    DEOS_CMD_SYSTEM_PING          = 0x08,
+    DEOS_CMD_SYSTEM_PONG          = 0x09
+} deos_system_command_t;
+\end{lstlisting}
+
+\section{PING--PONG Ağ Erişilebilirlik Mekanizması}
+
+DEOS protokolünde tüm adreslenebilir physical ve virtual node'lar ortak bir PING--PONG
+mekanizması uygular. Bir node, erişmek istediği başka bir node'a unicast PING gönderebilir.
+Geçerli PING mesajını alan hedef node, aynı Ping ID değerini içeren PONG mesajını kaynak
+node'a geri göndermek zorundadır.
+
+PING ve PONG uygulama REQUEST/RESPONSE mekanizmasından ayrı bir network-management
+mekanizmasıdır. Her iki mesaj da aşağıdaki alanları kullanır:
+
+\begin{verbatim}
+Priority      = DEOS_PRIO_NETWORK
+Message Class = DEOS_CLASS_NETWORK
+Service       = DEOS_SERVICE_SYSTEM
+\end{verbatim}
+
+PING için \code{Command = DEOS\_CMD\_SYSTEM\_PING}; PONG için
+\code{Command = DEOS\_CMD\_SYSTEM\_PONG} kullanılır.
+
+\subsection{PING Mesaj Formatı}
+
+PING mesajının uygulama veri alanı aşağıdaki gibi tanımlanır:
+
+\begin{center}
+\begin{tabularx}{\textwidth}{c l c X}
+\toprule
+Byte & Alan & Tip & Açıklama \\
+\midrule
+0 & Protocol Version & \code{uint8\_t} & DEOS v1.1 için \hex{11} \\
+1 & Sequence & \code{uint8\_t} & Gönderen node'un TX sequence değeri \\
+2 & Command & \code{uint8\_t} & \code{DEOS\_CMD\_SYSTEM\_PING} = \hex{08} \\
+3 & Length & \code{uint8\_t} & \hex{04} \\
+4--7 & Ping ID & \code{uint32\_t} & Gönderen tarafından üretilen correlation değeri \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Toplam semantic CAN-FD data length 8 byte'tır. Ping ID, DEOS genel byte-order kuralına uygun olarak
+Little-Endian taşınır. Gönderen node, aynı anda birden fazla PING işlemi yürütüyorsa aktif
+işlemleri ayırt edecek Ping ID değerleri kullanmalıdır.
+
+PING CAN Identifier alanları:
+
+\begin{verbatim}
+Priority      = DEOS_PRIO_NETWORK
+Message Class = DEOS_CLASS_NETWORK
+Service       = DEOS_SERVICE_SYSTEM
+Destination   = ping atılan node
+Source        = ping gönderen node
+\end{verbatim}
+
+\subsection{PONG Mesaj Formatı}
+
+PONG mesajı, alınan PING mesajındaki 32-bit Ping ID değerini değiştirmeden geri taşır.
+
+\begin{center}
+\begin{tabularx}{\textwidth}{c l c X}
+\toprule
+Byte & Alan & Tip & Açıklama \\
+\midrule
+0 & Protocol Version & \code{uint8\_t} & DEOS v1.1 için \hex{11} \\
+1 & Sequence & \code{uint8\_t} & PONG gönderen node'un kendi TX sequence değeri \\
+2 & Command & \code{uint8\_t} & \code{DEOS\_CMD\_SYSTEM\_PONG} = \hex{09} \\
+3 & Length & \code{uint8\_t} & \hex{04} \\
+4--7 & Ping ID & \code{uint32\_t} & PING'den aynen echo edilen correlation değeri \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+PONG CAN Identifier alanları:
+
+\begin{verbatim}
+Priority      = DEOS_PRIO_NETWORK
+Message Class = DEOS_CLASS_NETWORK
+Service       = DEOS_SERVICE_SYSTEM
+Destination   = PING mesajının Source Node değeri
+Source        = PING'i alan hedef node
+\end{verbatim}
+
+PONG mesajındaki Sequence alanı PING mesajındaki Sequence değerini kopyalamaz. Her node
+kendi transmit sequence sayacını kullanmaya devam eder. PING ile PONG arasındaki transaction
+correlation yalnızca Ping ID üzerinden yapılır.
+
+\subsection{Zorunlu Node Davranışı}
+
+Geçerli ve kendisine yöneltilmiş bir PING alan her DEOS node'u aşağıdaki davranışı uygular:
+
+\begin{enumerate}[nosep]
+    \item PING mesajının Source Node ve Ping ID alanlarını okur.
+    \item Yeni bir PONG mesajı oluşturur.
+    \item PONG Source alanını kendi Node ID'si yapar.
+    \item PONG Destination alanını PING Source değerine eşitler.
+    \item PING içerisindeki Ping ID değerini değiştirmeden PONG payload'ına kopyalar.
+    \item Kendi normal TX Sequence değerini kullanarak PONG'u gönderir.
+\end{enumerate}
+
+\subsection{RTT Ölçümü}
+
+Round-trip time ölçümü gönderen node üzerinde yapılır. PING gönderildiği anda yerel zaman
+kaydedilir; aynı Ping ID'yi taşıyan PONG alındığında iki yerel zaman arasındaki fark RTT
+olarak hesaplanır:
+
+\[
+RTT = T_{pong} - T_{ping}
+\]
+
+Bu yöntem node'lar arasında saat senkronizasyonu gerektirmez. Timeout süresi transport veya
+uygulama gereksinimine göre ayrıca tanımlanabilir; v0.3 kapsamında tek bir global timeout
+süresi dondurulmamıştır.
+
+\subsection{Broadcast PING Kuralı}
+
+\code{DEOS\_CMD\_SYSTEM\_PING} mesajı v1.1 protokolünde yalnızca unicast Destination Node
+ile kullanılmalıdır. \code{Destination = DEOS\_NODE\_BROADCAST} ile PING gönderimi geçersizdir.
+Bu kural, çok sayıda node'un aynı anda PONG üretmesinden doğacak response burst trafiğini
+önlemek için tanımlanmıştır.
+
+Bir uygulama tüm node'ların erişilebilirliğini taramak istiyorsa her hedef Node ID için ayrı
+unicast PING işlemi başlatmalıdır.
+
+\subsection{HEARTBEAT ile PING--PONG Ayrımı}
+
+HEARTBEAT, bir node'un periyodik veya olay tabanlı olarak kendi yaşam bilgisini yayınlamasıdır.
+PING--PONG ise belirli bir node'un başka belirli bir node'a aktif erişilebilirlik sorgusu
+yapmasıdır. Bu iki mekanizma birbirinin yerine kullanılmaz.
+
+\end{document}
