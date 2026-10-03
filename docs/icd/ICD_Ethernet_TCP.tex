@@ -2,13 +2,10 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[turkish]{babel}
 \usepackage{geometry}
 \usepackage{tabularx}
-\usepackage{enumitem}
 \usepackage{listings}
 \usepackage{xcolor}
-\usepackage{multirow}
 
 \geometry{
     a4paper,
@@ -34,7 +31,7 @@
 Bu doküman, DEOS ağındaki bir düğüm (Main Node) ile \textbf{Python Textual Arayüzü (Raspberry Pi vb.)} arasında \textbf{TCP Soket} üzerinden kurulacak haberleşmenin kurallarını ve çerçeve (framing) yapısını tanımlar. TCP protokolü zaten kendi içinde hata denetimi (Checksum) ve paket sırası garantisi sunduğu için, LoRa tarafındaki MAGIC, CRC ve FLAG baytlarına bu arayüzde \textbf{ihtiyaç duyulmaz}.
 
 \section{Bağlantı Özellikleri}
-\begin{itemize}[label=\textbullet]
+\begin{itemize}
     \item \textbf{Roller:} Zephyr (STM32 vb.) kartı \textbf{TCP Server} olarak dinlemede kalır. Textual arayüzü (Python) açıldığı anda \textbf{TCP Client} olarak karta bağlanır.
     \item \textbf{IP Adresi:} \code{192.168.1.10} (Zephyr için tanımlı varsayılan Statik IP)
     \item \textbf{Port:} \code{5000} (Varsayılan)
@@ -57,7 +54,7 @@ TCP veri akışının nerede başlayıp bittiğini bilmek (Stream Parsing) için
 \end{table}
 
 \subsection{Alanların Açıklamaları}
-\begin{itemize}[label=\textbullet]
+\begin{itemize}
     \item \textbf{Length (1 Byte):} Geriye kalan DEOS Header ve Payload alanlarının \textbf{toplam byte sayısını} ifade eder. (Örneğin; 8 bayt başlık + 4 bayt Ping id = Length 12 olur).
     \item \textbf{DEOS Common Header (8 Byte):} Struct'ın dinamik olmayan asıl bilgileridir. Sırasıyla şu 1'er baytlık alanları içerir: \code{priority}, \code{message\_class}, \code{service}, \code{destination}, \code{source}, \code{version}, \code{sequence}, \code{command}.
     \item \textbf{DEOS Payload ($N$ Byte):} İlgili komutun veri kısmı. Gönderilmeyen boş byte'lar (\code{DEOS\_MAX\_PAYLOAD\_LEN}'den arta kalan kısımlar) hatta aktarılmaz.
@@ -81,10 +78,10 @@ Textual arayüzünden karta yollanacak, içerisinde "69" Ping ID'si bulunan bir 
 \textbf{6}  & version & \hex{01} & Protokol Versiyonu \\
 \textbf{7}  & sequence & \hex{05} & Mesaj Sıra No \\
 \textbf{8}  & command & \hex{01} & DEOS\_CMD\_SYSTEM\_PING \\
-\textbf{9}  & payload[0] & \hex{45} & \multirow{4}{*}{PING ID: 69 (Little Endian)} \\
-\textbf{10} & payload[1] & \hex{00} & \\
-\textbf{11} & payload[2] & \hex{00} & \\
-\textbf{12} & payload[3] & \hex{00} & \\
+\textbf{9}  & payload[0] & \hex{45} & PING ID: 69 (Little Endian) LSB \\
+\textbf{10} & payload[1] & \hex{00} & PING ID Devamı \\
+\textbf{11} & payload[2] & \hex{00} & PING ID Devamı \\
+\textbf{12} & payload[3] & \hex{00} & PING ID: 69 MSB \\
 \hline
 \end{tabular}
 \end{table}

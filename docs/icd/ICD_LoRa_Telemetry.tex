@@ -2,22 +2,17 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[turkish]{babel}
 \usepackage{geometry}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{tabularx}
 \usepackage{longtable}
-\usepackage{enumitem}
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
-\usepackage{microtype}
 \usepackage{amsmath}
-\usepackage{titlesec}
 
 % Türkçe babel paketinin "=" karakterini listings seçeneklerinde etkilemesini engeller
-\AtBeginDocument{\shorthandoff{=}}
 
 \geometry{
     a4paper,
@@ -31,8 +26,6 @@
 \setlength{\parskip}{5pt}
 \renewcommand{\arraystretch}{1.18}
 
-\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
-\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection.}{0.5em}{}
 
 \lstdefinestyle{cstyle}{
     language={[ANSI]C},
@@ -87,7 +80,7 @@ Genel paket yapısı şu şekildedir:
 \end{table}
 
 \subsection{Alanların Açıklamaları}
-\begin{itemize}[label=\textbullet]
+\begin{itemize}
     \item \textbf{MAGIC\_1 \& MAGIC\_2:} Senkronizasyon baytlarıdır. Sabit olarak \hex{AA} ve \hex{55} değerlerini alırlar. Alıcı taraf, UART üzerinden gelen veri akışında bu iki baytı yan yana görene kadar tüm verileri çöpe atmalıdır.
     \item \textbf{Flag (Bayrak):} Mesajın türünü ve ACK talebini belirtir.
     \item \textbf{Length:} Payload alanının uzunluğunu (bayt cinsinden) belirtir. Dinamik olarak hesaplanır (\code{offsetof(deos\_message\_t, payload) + payload\_len}). ACK paketlerinde ise sadece CRC doğrulama verisi taşındığı için \textbf{2} olur.
