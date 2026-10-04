@@ -1,0 +1,10 @@
+# Zephyr Application Kconfig
+
+mainmenu "Application Configuration"
+
+source "Kconfig.zephyr"
+
+# Add application-specific configurations here
+# config APP_MY_FEATURE
+#     bool "Enable my custom feature"
+#     default n
