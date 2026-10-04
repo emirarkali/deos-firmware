@@ -6,10 +6,11 @@ project(deos_firmware)
 
 
 target_sources(app PRIVATE
-    src/main.c
-    src/eth_textual.c
-    src/eth_uros.c
-    src/uart_lora.c
+    src/main.cpp
+    src/MainApp.cpp
+    src/eth_textual.cpp
+    src/eth_uros.cpp
+    src/uart_lora.cpp
     ../../lib/deos_core/src/deos_core.c
     ../../lib/deos_core/src/deos_rx.c
     ../../lib/deos_core/src/deos_tx.c
