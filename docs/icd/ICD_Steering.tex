@@ -1,0 +1,108 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{amsmath}
+
+\geometry{
+    a4paper,
+    top=1.8cm,
+    bottom=1.8cm,
+    left=1.8cm,
+    right=1.8cm
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\renewcommand{\arraystretch}{1.18}
+
+\newcommand{\hex}[1]{\texttt{0x#1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{\textbf{DEOS Steering Node ICD}\\
+\large v1.0 (PDF Revizyonu)}
+\author{DEOS -- Dokuz Eylül Otonom Sistemler}
+\date{28 Eylül 2026}
+
+\begin{document}
+\maketitle
+
+\section{Direksiyon (Steering) Alt Sistemi (0x11)}
+
+Direksiyon sistemi \code{DEOS\_NODE\_STEERING} (\hex{11}) adresindedir.
+
+\subsection{Gerçek Zamanlı Kontrol Komutları (Real-Time RX)}
+\begin{center}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{3cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.2cm} X}
+\toprule
+\textbf{Değişken Adı} & \textbf{Sınıf \& Servis} & \textbf{Komut ID} & \textbf{Ölçek} & \textbf{Fonksiyonel Görev} \\
+\midrule
+\code{target\_steering\_angle} & COMMAND (0x1) STEERING (0x02) & 0x01 & 0.01 deg & Hedef tekerlek açısı (Negatif: Sol, Pozitif: Sağ). \\
+\code{target\_angular\_velocity} & COMMAND (0x1) STEERING (0x02) & 0x01 & 0.01 deg/s & Direksiyonun hedef açıya döneceği açısal hız tavanı. \\
+\code{steering\_control\_mode} & COMMAND (0x1) STEERING (0x02) & 0x04 & Enum & Direksiyon motorunun kontrol modunu belirler. \\
+\code{emergency\_stop\_cmd} & SAFETY (0x0) SYSTEM (0x00) & 0x05 & Boolean & Direksiyon motorunu mekanik serbest bırakma (free-wheel). \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Direksiyon Durum Telemetrisi (STATUS)}
+
+\code{DEOS\_CMD\_STEERING\_GET\_STATUS (0x02)} komutuna karşılık dönen veri yapısı:
+
+\begin{center}
+\begin{tabular}{c c c l}
+\toprule
+\textbf{Offset} & \textbf{Boyut} & \textbf{Tip} & \textbf{Alan} \\
+\midrule
+0 & 2 byte & int16\_t  & Current Angle (0.01 deg) \\
+2 & 2 byte & uint16\_t & Motor Current (0.1 A) \\
+4 & 2 byte & int16\_t  & Motor Temperature (0.1 $^\circ$C) \\
+6 & 2 byte & int16\_t  & Chassis Yaw Rate (0.01 deg/s) \\
+8 & 1 byte & uint8\_t  & Is Tracking Target (0: No, 1: Yes) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Çapraz Sistem Dinamik Telemetrisi}
+\begin{itemize}
+    \item \textbf{current\_vehicle\_speed} (0x10): Hız arttıkça azami direksiyon açısını kısarak yüksek hızda devrilmeyi önler.
+    \item \textbf{chassis\_yaw\_rate} (0x03): Araç savrulma anında ESP mantığı ile karşı direksiyon (counter-steering) desteği sağlar.
+\end{itemize}
+
+\subsection{Direksiyon Konfigürasyon Parametreleri}
+\begin{center}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}p{3cm} >{\raggedright\arraybackslash}p{2.2cm} >{\raggedright\arraybackslash}p{2.2cm} X}
+\toprule
+\textbf{Parametre} & \textbf{ID} & \textbf{Tip} & \textbf{Ölçek} & \textbf{Açıklama} \\
+\midrule
+PID\_KP / KI / KD & \hex{0001-03} & uint16\_t & 0.01 & Açı kontrolü PID kazançları. \\
+PID\_I\_MAX & \hex{0004} & uint16\_t & 0.01 \% & İntegratör doyum patlamasını (windup) önler. \\
+FEEDFORWARD\_K & \hex{0005} & uint16\_t & 0.01 & Hedef açısal hız ileri besleme kazancı. \\
+DEADBAND & \hex{0006} & uint16\_t & 0.01 deg & Düz gidişte titreşimleri kesen ölü bölge. \\
+ZERO\_OFFSET & \hex{0010} & int16\_t & 0.01 deg & Mekanik düz gidiş merkez açı sapması (Kalibrasyon). \\
+MIN/MAX\_ANGLE & \hex{0011-12} & int16\_t & 0.01 deg & Yazılımsal sol ve sağ azami dönüş sınırları. \\
+CURRENT\_LIMIT & \hex{0013} & uint16\_t & 0.1 A & Direksiyon motoru elektriksel akım tavanı. \\
+MAX\_ANGULAR\_VEL & \hex{0014} & uint16\_t & 0.01 deg/s & İzin verilen azami açısal dönüş hızı tavanı. \\
+MAX\_ANGULAR\_ACC & \hex{0015} & uint16\_t & 0.01 deg/s² & Mekanik dişliyi koruyan açısal ivme limiti. \\
+SOFT\_STOP\_MARGIN & \hex{0016} & uint16\_t & 0.01 deg & Mekanik dayamaya sert çarpmayı önleyen pay. \\
+MAX\_TRACK\_ERR & \hex{0017} & uint16\_t & 0.01 deg & Takip hatası toleransı; aşılırsa hata verilir. \\
+TRACK\_TIMEOUT\_MS & \hex{0018} & uint16\_t & 1 ms & İzleme hatasının sürdürülebileceği azami süre. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Kalibrasyon Prosedürleri}
+Direksiyon sistemi \code{DEOS\_SERVICE\_CALIBRATION (0x05)} servisini kullanır.
+\begin{itemize}
+    \item \textbf{Direksiyon:} Lazerli terazi ile tam düz konum alınarak enkoder açısı \code{ZERO\_OFFSET} olarak EEPROM'a yazılır. Motor düşük torkla sola ve sağa dayamalara sürülerek nominal akım eşiğinde durduğu noktalar yazılımsal sınır açıları (\code{MIN\_ANGLE}, \code{MAX\_ANGLE}) atanır.
+\end{itemize}
+
+\end{document}

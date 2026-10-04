@@ -74,6 +74,25 @@ Aşağıdaki komutlar Traction ECU'nun ağdan anlık olarak alması gereken komu
 \end{tabularx}
 \end{center}
 
+\subsection{Traction Durum Telemetrisi (STATUS)}
+
+\code{DEOS\_CMD\_TRACTION\_GET\_STATUS (0x02)} komutuna karşılık veya periyodik olarak yayınlanan \code{STATUS (0x02)} mesajının veri yapısı aşağıdaki gibidir:
+
+\begin{center}
+\begin{tabular}{c c c l}
+\toprule
+\textbf{Offset} & \textbf{Boyut} & \textbf{Tip} & \textbf{Alan} \\
+\midrule
+0 & 2 byte & uint16\_t & Current Speed (0.01 m/s) \\
+2 & 2 byte & uint16\_t & Motor Current (0.1 A) \\
+4 & 2 byte & int16\_t  & Inverter Temperature (0.1 $^\circ$C) \\
+6 & 2 byte & int16\_t  & Motor Temperature (0.1 $^\circ$C) \\
+8 & 1 byte & uint8\_t  & Current Gear (0:N, 1:D, 2:R, 3:P) \\
+9 & 1 byte & uint8\_t  & Wheel Slip State (0: Normal, 1: Slipping) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
 \subsection{BMS Dinamik Güç Koruması (Çapraz Telemetri)}
 Traction node'u, BMS'den gelen şu yayınları (0x20) dinleyerek kendi sınırlarını dinamik olarak ayarlar:
 \begin{itemize}

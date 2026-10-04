@@ -10,6 +10,17 @@ extern "C" {
  */
 #define DEOS_PROTOCOL_VERSION 0x11
 
+/*
+ * DEOS Timing & Limits Configuration
+ */
+/* CAN-FD Physical Layer */
+#define DEOS_CANFD_NOMINAL_BITRATE    500000  /* 500 kbps for Arbitration */
+#define DEOS_CANFD_DATA_BITRATE       2000000 /* 2 Mbps for Data Phase */
+
+/* Network Management */
+#define DEOS_HEARTBEAT_PERIOD_MS      1000    /* Nodes broadcast heartbeat every 1000ms */
+#define DEOS_PING_TIMEOUT_MS          100     /* Max wait time for PONG */
+
 /* Common Header Layout */
 #define DEOS_COMMON_HEADER_SIZE 4
 #define DEOS_VERSION_OFFSET     0
@@ -170,23 +181,74 @@ typedef enum {
  */
 typedef enum {
     DEOS_CMD_STEERING_SET_TARGET_ANGLE = 0x01,
-    DEOS_CMD_STEERING_GET_STATUS       = 0x02
+    DEOS_CMD_STEERING_GET_STATUS       = 0x02,
+    /* 0x03 reserved */
+    DEOS_CMD_STEERING_SET_MODE         = 0x04
 } deos_steering_command_t;
+
+/*
+ * STEERING Parameters
+ */
+typedef enum {
+    DEOS_PARAM_STEERING_PID_KP               = 0x0001,
+    DEOS_PARAM_STEERING_PID_KI               = 0x0002,
+    DEOS_PARAM_STEERING_PID_KD               = 0x0003,
+    DEOS_PARAM_STEERING_PID_I_MAX            = 0x0004,
+    DEOS_PARAM_STEERING_FEEDFORWARD_K        = 0x0005,
+    DEOS_PARAM_STEERING_DEADBAND             = 0x0006,
+
+    DEOS_PARAM_STEERING_ZERO_OFFSET          = 0x0010,
+    DEOS_PARAM_STEERING_MIN_ANGLE            = 0x0011,
+    DEOS_PARAM_STEERING_MAX_ANGLE            = 0x0012,
+    DEOS_PARAM_STEERING_CURRENT_LIMIT        = 0x0013,
+    DEOS_PARAM_STEERING_MAX_ANGULAR_VEL      = 0x0014,
+    DEOS_PARAM_STEERING_MAX_ANGULAR_ACC      = 0x0015,
+    DEOS_PARAM_STEERING_SOFT_STOP_MARGIN     = 0x0016,
+    DEOS_PARAM_STEERING_MAX_TRACK_ERR        = 0x0017,
+    DEOS_PARAM_STEERING_TRACK_TIMEOUT_MS     = 0x0018
+} deos_steering_parameter_t;
 
 /*
  * BRAKE Commands
  */
 typedef enum {
     DEOS_CMD_BRAKE_SET_TARGET   = 0x01,
-    DEOS_CMD_BRAKE_GET_STATUS   = 0x02
+    DEOS_CMD_BRAKE_GET_STATUS   = 0x02,
+    /* 0x03 reserved */
+    DEOS_CMD_BRAKE_SET_MODE     = 0x04,
+    DEOS_CMD_BRAKE_SET_PARK     = 0x05,
+    DEOS_CMD_BRAKE_SET_PREFILL  = 0x06
 } deos_brake_command_t;
+
+/*
+ * BRAKE Parameters
+ */
+typedef enum {
+    DEOS_PARAM_BRAKE_PID_KP                  = 0x0001,
+    DEOS_PARAM_BRAKE_PID_KI                  = 0x0002,
+    DEOS_PARAM_BRAKE_PID_KD                  = 0x0003,
+
+    DEOS_PARAM_BRAKE_MIN_POSITION            = 0x0010,
+    DEOS_PARAM_BRAKE_MAX_POSITION            = 0x0011,
+    DEOS_PARAM_BRAKE_CURRENT_LIMIT           = 0x0012,
+    DEOS_PARAM_BRAKE_SLEW_RATE_LIMIT         = 0x0013,
+    DEOS_PARAM_BRAKE_CMD_TIMEOUT_MS          = 0x0014,
+    DEOS_PARAM_BRAKE_KISS_POINT_OFFSET       = 0x0015,
+    DEOS_PARAM_BRAKE_MAX_FORCE_LIMIT         = 0x0016
+} deos_brake_parameter_t;
 
 /*
  * BMS Commands
  */
 typedef enum {
-    DEOS_CMD_BMS_GET_STATUS = 0x01,
-    DEOS_CMD_BMS_STATUS     = 0x02
+    DEOS_CMD_BMS_GET_STATUS          = 0x01,
+    DEOS_CMD_BMS_STATUS              = 0x02,
+    DEOS_CMD_BMS_GET_CELL_VOLTAGES   = 0x03,
+    DEOS_CMD_BMS_CELL_VOLTAGE        = 0x04,
+    DEOS_CMD_BMS_GET_TEMPERATURES    = 0x05,
+    DEOS_CMD_BMS_TEMPERATURE         = 0x06,
+    DEOS_CMD_BMS_GET_BALANCING       = 0x07,
+    DEOS_CMD_BMS_BALANCING           = 0x08
 } deos_bms_command_t;
 
 /*
@@ -210,7 +272,7 @@ typedef enum {
 } deos_diagnostic_command_t;
 
 /*
- * Common Parameter Commands
+ * Parameter Commands
  */
 typedef enum {
     DEOS_CMD_GET_PARAMETER      = 0xE0,
@@ -218,7 +280,7 @@ typedef enum {
     DEOS_CMD_SAVE_PARAMETERS    = 0xE2,
     DEOS_CMD_RESTORE_DEFAULTS   = 0xE3,
     DEOS_CMD_GET_PARAMETER_INFO = 0xE4
-} deos_common_command_t;
+} deos_parameter_command_t;
 
 /*
  * State Registry
