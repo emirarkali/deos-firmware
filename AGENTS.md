@@ -8,6 +8,7 @@ These rules apply to ALL AI assistants, coders, and agents (Gemini, Claude, Deep
 - **Approval Required for Core Changes**: Any modifications to the `deos_core` library must be explicitly asked to and approved by Emir Arkalı. Unauthorized changes will break the wire protocol and cause communication failures with other CAN nodes.
 - **Reporting Necessary Core Changes**: If a modification in the `lib/` directory is absolutely necessary for an application to function properly, the AI agent must report the situation and clearly explain the required fix to the user instead of applying the changes directly.
 - **Scope of Permissions**: In general, developers and AI agents are only authorized to create and modify applications within the `apps/` directory (e.g., `apps/traction`, `apps/steering`). They do not have the authority to edit the core library without explicit permission.
+- **Language Choice**: Even though the core library is written in C, the application layer within the `apps/` directory can be written in C++.
 
 ## 2. Zephyr RTOS & Build Rules
 
@@ -15,3 +16,7 @@ These rules apply to ALL AI assistants, coders, and agents (Gemini, Claude, Deep
   `west build -b <board_name> apps/<app_name>` (e.g., `west build -b native_sim apps/traction`)
 - **Logging Standards**: Do NOT use standard C `printf()`. Always use Zephyr's logging subsystem (`<zephyr/logging/log.h>`) with `LOG_INF()`, `LOG_ERR()`, `LOG_WRN()`, etc. Ensure `LOG_MODULE_REGISTER()` is declared at the top of the C files.
 - **Include Paths**: When an application needs to include DEOS core headers, it must use the system include format `<deos/deos.h>` or `<deos/deos_icd.h>`. Never use relative paths (like `../../lib/deos_core/...`) to access the library headers.
+
+## 3. Git Workflow
+
+- **Syncing Changes**: AI agents must always execute a `git pull` before starting any task, and a `git push` after the work is finished to keep the repository synchronized.
