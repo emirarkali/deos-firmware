@@ -67,6 +67,13 @@ typedef enum {
 } deos_transport_t;
 
 /*
+ * SYSTEM Command Payloads
+ */
+struct deos_heartbeat_payload {
+    uint8_t current_state; /* deos_state_t */
+} __attribute__((packed));
+
+/*
  * TRACTION Command Payloads
  */
 struct deos_traction_target_payload {

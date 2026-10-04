@@ -384,7 +384,8 @@ ZTEST(deos_heartbeat_test, test_01_heartbeat_receive_routes_to_app)
     msg.message_class = DEOS_CLASS_NETWORK;
     msg.service = DEOS_SERVICE_SYSTEM;
     msg.command = DEOS_CMD_SYSTEM_HEARTBEAT;
-    msg.payload_len = 0;
+    msg.payload[0] = DEOS_STATE_ACTIVE;
+    msg.payload_len = 1;
     
     heartbeat_handler_called = false;
     deos_dispatch(&msg, DEOS_TRANSPORT_CAN_FD);
@@ -397,7 +398,7 @@ ZTEST(deos_heartbeat_test, test_02_heartbeat_send_unregistered_node)
     struct deos_config config = { .node_id = DEOS_NODE_MAIN_STM32 };
     deos_init(&config);
 
-    int ret = deos_send_heartbeat_from_node(0x99); /* Unregistered */
+    int ret = deos_send_heartbeat_from_node(0x99, DEOS_STATE_ACTIVE); /* Unregistered */
     zassert_equal(ret, -EPERM, "Should reject unregistered source node");
 }
 
@@ -408,7 +409,7 @@ ZTEST(deos_heartbeat_test, test_03_heartbeat_send_fields)
     deos_init(&config);
     
     /* In a full mock we could intercept the frame, but we at least ensure it passes validation */
-    int ret = deos_send_heartbeat();
+    int ret = deos_send_heartbeat(DEOS_STATE_ACTIVE);
     /* Note: without can_start(), deos_send might return -ENETDOWN depending on zephyr state, 
        but if loopback is ready it returns 0. As long as it doesn't return -EINVAL we are good. */
     zassert_not_equal(ret, -EINVAL, "deos_send_heartbeat should build valid fields");

@@ -8,9 +8,12 @@ project(deos_firmware)
 target_sources(app PRIVATE
     src/main.cpp
     src/MainApp.cpp
-    src/eth_textual.cpp
-    src/eth_uros.cpp
-    src/uart_lora.cpp
+    src/io/LedController.cpp
+    src/io/SafetyManager.cpp
+    src/network/NetworkMonitor.cpp
+    src/transport/eth_textual.cpp
+    src/transport/eth_uros.cpp
+    src/transport/uart_lora.cpp
     ../../lib/deos_core/src/deos_core.c
     ../../lib/deos_core/src/deos_rx.c
     ../../lib/deos_core/src/deos_tx.c

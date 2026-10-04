@@ -27,12 +27,15 @@ int deos_send_ping(
         sizeof(payload));
 }
 
-int deos_send_heartbeat_from_node(deos_node_id_t source_node)
+int deos_send_heartbeat_from_node(deos_node_id_t source_node, deos_state_t current_state)
 {
     if (!deos_is_local_node(source_node)) {
         LOG_ERR("Cannot send heartbeat from unregistered node 0x%02X", source_node);
         return -EPERM;
     }
+
+    struct deos_heartbeat_payload payload;
+    payload.current_state = current_state;
 
     return deos_send_from_node(
         source_node,
@@ -41,16 +44,16 @@ int deos_send_heartbeat_from_node(deos_node_id_t source_node)
         DEOS_CLASS_NETWORK,
         DEOS_SERVICE_SYSTEM,
         DEOS_CMD_SYSTEM_HEARTBEAT,
-        NULL,
-        0);
+        &payload,
+        sizeof(payload));
 }
 
-int deos_send_heartbeat(void)
+int deos_send_heartbeat(deos_state_t current_state)
 {
     const struct deos_config *config = deos_get_config();
     if (!config) return -ENODEV;
 
-    return deos_send_heartbeat_from_node(config->node_id);
+    return deos_send_heartbeat_from_node(config->node_id, current_state);
 }
 
 void deos_handle_ping(const deos_message_t *msg)

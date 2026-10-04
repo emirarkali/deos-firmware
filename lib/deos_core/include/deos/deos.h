@@ -107,7 +107,7 @@ int deos_send_from_node(
  *
  * @return 0 on success, negative error code on failure.
  */
-int deos_send_heartbeat(void);
+int deos_send_heartbeat(deos_state_t current_state);
 
 /**
  * @brief Send a HEARTBEAT message from a specific local node.
@@ -115,7 +115,7 @@ int deos_send_heartbeat(void);
  * @param source_node The local node ID sending the heartbeat.
  * @return 0 on success, negative error code on failure.
  */
-int deos_send_heartbeat_from_node(deos_node_id_t source_node);
+int deos_send_heartbeat_from_node(deos_node_id_t source_node, deos_state_t current_state);
 
 /**
  * @brief Send a generic DEOS response.

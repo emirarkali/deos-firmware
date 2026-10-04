@@ -218,10 +218,22 @@ Bu kural, çok sayıda node'un aynı anda PONG üretmesinden doğacak response b
 Bir uygulama tüm node'ların erişilebilirliğini taramak istiyorsa her hedef Node ID için ayrı
 unicast PING işlemi başlatmalıdır.
 
-\subsection{HEARTBEAT ile PING--PONG Ayrımı}
+\subsection{HEARTBEAT Mesaj Formatı}
 
 HEARTBEAT, bir node'un periyodik veya olay tabanlı olarak kendi yaşam bilgisini yayınlamasıdır.
 PING--PONG ise belirli bir node'un başka belirli bir node'a aktif erişilebilirlik sorgusu
 yapmasıdır. Bu iki mekanizma birbirinin yerine kullanılmaz.
+
+v1.1 protokolünde HEARTBEAT mesajı boş (0 byte payload) değildir. Node'un anlık durumunu (State) taşıyan 1 byte'lık bir payload barındırır:
+
+\begin{center}
+\begin{tabularx}{\textwidth}{c l c X}
+\toprule
+Byte & Alan & Tip & Açıklama \\
+\midrule
+0 & Current State & \code{uint8\_t} & \code{deos\_state\_t} enum değeri (örn: \hex{03} ACTIVE, \hex{05} SAFE) \\
+\bottomrule
+\end{tabularx}
+\end{center}
 
 \end{document}

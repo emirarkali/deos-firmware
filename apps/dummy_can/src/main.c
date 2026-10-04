@@ -10,7 +10,12 @@ static int handle_pong(const deos_message_t *msg, void *user_data) {
 }
 
 static int handle_heartbeat(const deos_message_t *msg, void *user_data) {
-    LOG_INF("Received HEARTBEAT from Node 0x%02X", msg->source);
+    if (msg->payload_len == sizeof(struct deos_heartbeat_payload)) {
+        const struct deos_heartbeat_payload *pl = (const struct deos_heartbeat_payload *)msg->payload;
+        LOG_INF("Received HEARTBEAT from Node 0x%02X (State: 0x%02X)", msg->source, pl->current_state);
+    } else {
+        LOG_INF("Received HEARTBEAT from Node 0x%02X (Legacy/Empty Payload)", msg->source);
+    }
     return 0;
 }
 
