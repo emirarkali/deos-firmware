@@ -15,8 +15,8 @@
 /* Enable Primary CAN (FDCAN1) */
 &fdcan1 {
     status = "okay";
-    bitrate = <500000>;
-    bitrate-data = <2000000>;
+    bus-speed = <500000>;
+    bus-speed-data = <2000000>;
 };
 
 /* Disable usart1 to prevent any conflicts with LoRa pins */
