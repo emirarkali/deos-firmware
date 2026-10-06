@@ -119,6 +119,7 @@ int EthUros::init() {
     k_thread_create(&uros_thread, uros_stack, K_THREAD_STACK_SIZEOF(uros_stack),
                     uros_executor_thread, NULL, NULL, NULL,
                     K_PRIO_PREEMPT(5), 0, K_NO_WAIT);
+    deos_router_register_transport(DEOS_TRANSPORT_ETH_UROS, tx_callback);
     
     LOG_INF("micro-ROS Ethernet interface initialized successfully!");
     return 0;
