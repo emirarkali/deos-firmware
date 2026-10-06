@@ -26,4 +26,3 @@ target_sources(app PRIVATE
 )
 
 zephyr_include_directories(../../lib/deos_core/include)
-zephyr_compile_definitions(__errno_t=int __rsize_t=size_t)
