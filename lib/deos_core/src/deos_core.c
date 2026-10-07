@@ -30,7 +30,7 @@ int deos_init(const struct deos_config *config)
         return -EINVAL;
     }
 
-    if (config->node_id == DEOS_NODE_INVALID || config->node_id == DEOS_NODE_BROADCAST) {
+    if (config->node_id == DEOS_NODE_INVALID || config->node_id == DEOS_NODE_GLOBAL_BROADCAST || config->node_id == DEOS_NODE_CAN_BROADCAST) {
         LOG_ERR("Invalid local node ID: 0x%02X", config->node_id);
         return -EINVAL;
     }
@@ -72,6 +72,12 @@ int deos_init(const struct deos_config *config)
         return ret;
     }
 
+    ret = deos_tx_init();
+    if (ret != 0) {
+        LOG_ERR("Failed to init TX infrastructure");
+        return ret;
+    }
+
     is_initialized = true;
     LOG_INF("DEOS Core initialized (Node ID: 0x%02X)", core_config.node_id);
 
@@ -94,6 +100,12 @@ int deos_start(void)
         return ret;
     }
 
+    ret = deos_tx_start();
+    if (ret != 0) {
+        LOG_ERR("Failed to start TX threads");
+        return ret;
+    }
+
     is_started = true;
     LOG_INF("DEOS Core started");
     return 0;
@@ -109,7 +121,7 @@ int deos_register_local_node(deos_node_id_t node_id)
     if (!is_initialized) return -EPERM;
     if (is_started) return -EBUSY;
     if (!core_config.hosted_nodes_enabled) return -ENOTSUP;
-    if (node_id == DEOS_NODE_INVALID || node_id == DEOS_NODE_BROADCAST) return -EINVAL;
+    if (node_id == DEOS_NODE_INVALID || node_id == DEOS_NODE_GLOBAL_BROADCAST || node_id == DEOS_NODE_CAN_BROADCAST) return -EINVAL;
 
     /* Check duplicate */
     for (int i = 0; i < DEOS_MAX_LOCAL_NODES; i++) {
@@ -138,7 +150,7 @@ bool deos_is_local_node(deos_node_id_t node_id)
 
 int deos_get_local_node_index(deos_node_id_t node_id)
 {
-    if (node_id == DEOS_NODE_INVALID || node_id == DEOS_NODE_BROADCAST) {
+    if (node_id == DEOS_NODE_INVALID || node_id == DEOS_NODE_GLOBAL_BROADCAST || node_id == DEOS_NODE_CAN_BROADCAST) {
         return -1;
     }
     for (int i = 0; i < DEOS_MAX_LOCAL_NODES; i++) {

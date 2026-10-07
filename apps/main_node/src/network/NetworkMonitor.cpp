@@ -61,7 +61,7 @@ void NetworkMonitor::broadcast_heartbeat(deos_state_t current_state, uint32_t ms
         struct deos_heartbeat_payload hb_payload;
         hb_payload.current_state = current_state;
         
-        deos_send(DEOS_NODE_BROADCAST, DEOS_PRIO_NETWORK, DEOS_CLASS_NETWORK, 
+        deos_send(DEOS_NODE_CAN_BROADCAST, DEOS_PRIO_NETWORK, DEOS_CLASS_NETWORK, 
                   DEOS_SERVICE_SYSTEM, DEOS_CMD_SYSTEM_HEARTBEAT, 
                   &hb_payload, sizeof(hb_payload));
     }

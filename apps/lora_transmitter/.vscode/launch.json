@@ -1,0 +1,28 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Zephyr: Build and Debug",
+            "type": "cortex-debug",
+            "request": "launch",
+
+            "cwd": "${workspaceFolder}",
+
+            "executable": "${workspaceFolder}/build/zephyr/zephyr.elf",
+
+            "servertype": "external",
+            "gdbTarget": "localhost:3333",
+
+            "gdbPath": "/home/emir/zephyr-sdk-1.0.1/gnu/arm-zephyr-eabi/bin/arm-zephyr-eabi-gdb",
+
+            "preLaunchTask": "Zephyr: Start OpenOCD Server",
+
+            "runToEntryPoint": "main",
+
+            "device": "",
+            "interface": "swd",
+
+            "showDevDebugOutput": "raw"
+        }
+    ]
+}

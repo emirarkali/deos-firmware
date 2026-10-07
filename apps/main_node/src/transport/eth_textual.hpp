@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ITransport.hpp"
+#include "../ITransport.hpp"
 #include <zephyr/kernel.h>
 
 class EthTextual : public ITransport {

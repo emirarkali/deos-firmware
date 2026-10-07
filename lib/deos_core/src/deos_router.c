@@ -38,13 +38,24 @@ int deos_router_register_transport(deos_transport_t transport, deos_transport_tx
 
 void deos_route_message(const deos_message_t *msg, deos_transport_t incoming_transport)
 {
-    if (msg->destination == DEOS_NODE_BROADCAST) {
+    LOG_INF("Router RX -> Src: 0x%02X, Dst: 0x%02X, Cmd: 0x%02X, Len: %d (via %d)", 
+            msg->source, msg->destination, msg->command, msg->payload_len, incoming_transport);
+
+    if (msg->destination == DEOS_NODE_GLOBAL_BROADCAST) {
         /* Route to all registered transports EXCEPT the one it came from (Loop Prevention) */
         for (int i = 1; i < DEOS_TRANSPORT_COUNT; i++) { /* Start at 1 to skip INTERNAL */
             deos_transport_t target_transport = (deos_transport_t)i;
             if (target_transport != incoming_transport && transport_tx_registry[target_transport] != NULL) {
                 transport_tx_registry[target_transport](msg);
             }
+        }
+        return;
+    }
+
+    if (msg->destination == DEOS_NODE_CAN_BROADCAST) {
+        /* Route ONLY to CAN_FD (if not incoming from it) */
+        if (incoming_transport != DEOS_TRANSPORT_CAN_FD && transport_tx_registry[DEOS_TRANSPORT_CAN_FD] != NULL) {
+            transport_tx_registry[DEOS_TRANSPORT_CAN_FD](msg);
         }
         return;
     }

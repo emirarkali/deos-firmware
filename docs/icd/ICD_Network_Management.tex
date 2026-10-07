@@ -211,7 +211,7 @@ süresi dondurulmamıştır.
 \subsection{Broadcast PING Kuralı}
 
 \code{DEOS\_CMD\_SYSTEM\_PING} mesajı v1.1 protokolünde yalnızca unicast Destination Node
-ile kullanılmalıdır. \code{Destination = DEOS\_NODE\_BROADCAST} ile PING gönderimi geçersizdir.
+ile kullanılmalıdır. \code{Destination = DEOS\_NODE\_GLOBAL\_BROADCAST} veya \code{DEOS\_NODE\_CAN\_BROADCAST} ile PING gönderimi geçersizdir.
 Bu kural, çok sayıda node'un aynı anda PONG üretmesinden doğacak response burst trafiğini
 önlemek için tanımlanmıştır.
 

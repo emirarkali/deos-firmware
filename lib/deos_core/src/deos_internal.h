@@ -88,6 +88,8 @@ int deos_decode_frame(
     deos_message_t *msg);
 
 int deos_internal_canfd_tx(const deos_message_t *msg);
+int deos_tx_init(void);
+int deos_tx_start(void);
 
 /*
  * Dispatcher (deos_dispatch.c)

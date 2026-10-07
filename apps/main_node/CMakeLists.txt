@@ -25,3 +25,6 @@ target_sources(app PRIVATE
 )
 
 zephyr_include_directories(../../lib/deos_core/include)
+
+# Disable thread-safe statics for C++ to prevent __cxa_guard_* linker errors
+target_compile_options(app PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fno-threadsafe-statics>)

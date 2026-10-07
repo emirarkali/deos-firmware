@@ -34,6 +34,7 @@ UartLora& UartLora::getInstance() {
 UartLora::UartLora() : m_uart_dev(DEVICE_DT_GET(DT_ALIAS(lora_uart))) {
     ring_buf_init(&m_rx_rb, RING_BUF_SIZE, m_rx_rb_buffer);
     k_msgq_init(&m_tx_q, m_tx_q_buffer, sizeof(deos_message_t), LORA_TX_QUEUE_SIZE);
+    k_sem_init(&m_rx_sem, 0, K_SEM_MAX_LIMIT);
 }
 
 int UartLora::tx_callback(const deos_message_t *msg) {
@@ -60,15 +61,36 @@ void UartLora::uart_rx_cb(const struct device *dev, void *user_data) {
             if (ring_buf_put(&instance->m_rx_rb, &c, 1) == 0) {
                 // Overflow
             }
+            k_sem_give(&instance->m_rx_sem);
         }
     }
+
+    int err = uart_err_check(dev);
+    if (err) {
+        LOG_WRN("UART Error Cleared: %d", err);
+    }
+}
+
+static uint16_t deos_crc16_ccitt(uint16_t seed, const uint8_t *src, size_t len) {
+    for (; len > 0; len--) {
+        uint8_t e = *src++;
+        seed = seed ^ ((uint16_t)e << 8);
+        for (int i = 0; i < 8; i++) {
+            if (seed & 0x8000) {
+                seed = (seed << 1) ^ 0x1021;
+            } else {
+                seed = seed << 1;
+            }
+        }
+    }
+    return seed;
 }
 
 void UartLora::send_lora_frame(uint8_t flag, const uint8_t *payload, uint8_t len) {
     uint8_t header[4] = { LORA_MAGIC_1, LORA_MAGIC_2, flag, len };
-    uint16_t crc = crc16_ccitt(0xFFFF, &flag, 1);
-    crc = crc16_ccitt(crc, &len, 1);
-    if (len > 0) crc = crc16_ccitt(crc, payload, len);
+    uint16_t crc = deos_crc16_ccitt(0xFFFF, &flag, 1);
+    crc = deos_crc16_ccitt(crc, &len, 1);
+    if (len > 0) crc = deos_crc16_ccitt(crc, payload, len);
     
     for(int i=0; i<4; i++) uart_poll_out(m_uart_dev, header[i]);
     for(int i=0; i<len; i++) uart_poll_out(m_uart_dev, payload[i]);
@@ -101,7 +123,11 @@ void UartLora::tx_thread() {
     while (1) {
         if (k_msgq_get(&m_tx_q, &msg, K_FOREVER) == 0) {
             send_deos_lora(LORA_FLAG_NONE, &msg);
-            LOG_DBG("LoRa TX: Sent framed message (Cmd: 0x%02X, Len: %d)", msg.command, msg.payload_len);
+            const char* class_str = (msg.message_class == DEOS_CLASS_COMMAND) ? "COMMAND" : 
+                                    (msg.message_class == DEOS_CLASS_RESPONSE) ? "RESPONSE" : 
+                                    (msg.message_class == DEOS_CLASS_NETWORK) ? "NETWORK" : "OTHER";
+            LOG_INF("LoRa [TRANSMIT - GIDEN]: STM32'den Havaya paket firlatildi! (Class: %s, Dst: 0x%02X, Cmd: 0x%02X, Payload: %d byte)", 
+                    class_str, msg.destination, msg.command, msg.payload_len);
         }
     }
 }
@@ -163,9 +189,9 @@ void UartLora::rx_thread() {
                 case STATE_WAIT_CRC2:
                     rx_crc |= (uint16_t)c << 8;
                     
-                    uint16_t calc_crc = crc16_ccitt(0xFFFF, &rx_flag, 1);
-                    calc_crc = crc16_ccitt(calc_crc, &rx_len, 1);
-                    if (rx_len > 0) calc_crc = crc16_ccitt(calc_crc, rx_buf, rx_len);
+                    uint16_t calc_crc = deos_crc16_ccitt(0xFFFF, &rx_flag, 1);
+                    calc_crc = deos_crc16_ccitt(calc_crc, &rx_len, 1);
+                    if (rx_len > 0) calc_crc = deos_crc16_ccitt(calc_crc, rx_buf, rx_len);
                     
                     if (calc_crc == rx_crc) {
                         if (rx_flag == LORA_FLAG_ACK_REQ) {
@@ -186,26 +212,29 @@ void UartLora::rx_thread() {
                                     memcpy(msg.payload, rx_buf + header_sz, msg.payload_len);
                                 }
                                 
-                                LOG_INF("uart_lora: RX SUCCESS (Dynamic, Len: %d)! Pushing Cmd: 0x%02X to Router...", msg.payload_len, msg.command);
+                                LOG_INF("LoRa [RECEIVED - GELEN]: Havadan STM32'ye paket ulasti! (Cmd: 0x%02X, Payload: %d byte). Router'a iletiliyor...", msg.command, msg.payload_len);
                                 deos_feed_message(&msg, DEOS_TRANSPORT_UART_LORA);
                             } else {
-                                LOG_WRN("uart_lora: Received packet too small for DEOS Header!");
+                                LOG_WRN("LoRa [HATA]: Havadan gelen paket DEOS basligi icin cok kucuk!");
                             }
                         }
                     } else {
-                        LOG_WRN("uart_lora: CRC mismatch! Calc: 0x%04X, Rx: 0x%04X", calc_crc, rx_crc);
+                        LOG_WRN("LoRa [HATA - CRC]: Havadan gelen paket bozuk! Calc: 0x%04X, Rx: 0x%04X", calc_crc, rx_crc);
+                        LOG_WRN("Flag: %02X, Len: %02X", rx_flag, rx_len);
+                        for (int i=0; i<rx_len; i++) {
+                            LOG_WRN("Data[%d]: %02X", i, rx_buf[i]);
+                        }
                     }
                     rx_state = STATE_WAIT_MAGIC1;
                     break;
             }
         } else {
-            k_msleep(1);
+            k_sem_take(&m_rx_sem, K_FOREVER);
         }
     }
 }
 
 int UartLora::init() {
-    const struct device *gpiog = DEVICE_DT_GET(DT_NODELABEL(gpiog));
     const struct device *gpioe = DEVICE_DT_GET(DT_NODELABEL(gpioe));
 
     if (!device_is_ready(m_uart_dev)) {
@@ -213,20 +242,18 @@ int UartLora::init() {
         return -ENODEV;
     }
 
-    if (device_is_ready(gpiog)) {
-        gpio_pin_configure(gpiog, 14, GPIO_OUTPUT_INACTIVE); /* M0 (D2) -> LOW */
-    } else {
-        LOG_WRN("gpiog for M0 not ready");
-    }
-
+    /* M0 ve M1 pinleri PG14 ile çakışmaması için M0=D3(PE13), M1=D4(PE14) olarak değiştirildi */
     if (device_is_ready(gpioe)) {
-        gpio_pin_configure(gpioe, 13, GPIO_OUTPUT_INACTIVE); /* M1 (D3) -> LOW */
+        // M0 ve M1 donanimsal olarak GND'ye bagli oldugu icin konfigure etmiyoruz.
+        // D4 (PE14) pini AUX olarak kullanilacak
+        gpio_pin_configure(gpioe, 14, GPIO_INPUT); /* AUX (D4) -> INPUT */
     } else {
-        LOG_WRN("gpioe for M1 not ready");
+        LOG_WRN("gpioe for M0/M1 not ready");
     }
 
     uart_irq_callback_user_data_set(m_uart_dev, uart_rx_cb, this);
     uart_irq_rx_enable(m_uart_dev);
+    uart_irq_err_enable(m_uart_dev);
 
     deos_router_register_transport(DEOS_TRANSPORT_UART_LORA, tx_callback);
 

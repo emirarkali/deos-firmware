@@ -3,11 +3,11 @@
 
 LOG_MODULE_DECLARE(main_node_app);
 
+#define SW0_NODE DT_ALIAS(sw0)
+
 #if !DT_NODE_HAS_STATUS(SW0_NODE, okay)
 #error "Unsupported board: sw0 devicetree alias is not defined"
 #endif
-
-#define SW0_NODE DT_ALIAS(sw0)
 
 SafetyManager::SafetyManager() : button(GPIO_DT_SPEC_GET_OR(SW0_NODE, gpios, {0})) {}
 

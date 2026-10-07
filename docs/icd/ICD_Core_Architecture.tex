@@ -208,8 +208,9 @@ Adres Aralığı & Kullanım \\
 \hex{40}--\hex{5F} & Sensör düğümleri için ayrılmış alan \\
 \hex{60}--\hex{DF} & Gelecek genişleme \\
 \hex{E0}--\hex{EF} & Geliştirme / test düğümleri \\
-\hex{F0}--\hex{FE} & Diagnostik ve servis araçları \\
-\hex{FF} & Broadcast \\
+\hex{F0}--\hex{FD} & Diagnostik ve servis araçları \\
+\hex{FE} & CAN Broadcast (Sadece CAN arayüzü) \\
+\hex{FF} & Global Broadcast (Tüm arayüzler) \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -263,7 +264,8 @@ Node ID & Symbol & Fiziksel Cihaz & Görev \\
 Node ID & Symbol & Tür & Görev \\
 \midrule
 \hex{F0} & \code{DEOS\_NODE\_DIAG\_TOOL} & Servis aracı & Diagnostik ve servis erişimi \\
-\hex{FF} & \code{DEOS\_NODE\_BROADCAST} & Mantıksal & Tüm düğümlere yayın \\
+\hex{FE} & \code{DEOS\_NODE\_CAN\_BROADCAST} & Mantıksal & Sadece CAN-FD ağındaki düğümlere yayın \\
+\hex{FF} & \code{DEOS\_NODE\_GLOBAL\_BROADCAST} & Mantıksal & CAN, LoRa, Eth dahil tüm ağ arayüzlerine yayın \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -290,7 +292,10 @@ typedef enum
     DEOS_NODE_BMS_GATEWAY    = 0x30,
 
     DEOS_NODE_DIAG_TOOL      = 0xF0,
-    DEOS_NODE_BROADCAST      = 0xFF
+
+    DEOS_NODE_CAN_BROADCAST      = 0xFE,
+    DEOS_NODE_GLOBAL_BROADCAST   = 0xFF,
+    DEOS_NODE_BROADCAST          = 0xFF /* Alias */
 } deos_node_id_t;
 \end{lstlisting}
 

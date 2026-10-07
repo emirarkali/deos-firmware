@@ -158,13 +158,31 @@ int deos_rx_start(void)
         /* Filter for Broadcast destination */
         struct can_filter broadcast_filter = {
             .flags = CAN_FILTER_IDE,
-            .id = ((uint32_t)DEOS_NODE_BROADCAST << DEOS_CAN_DESTINATION_SHIFT),
+            .id = ((uint32_t)DEOS_NODE_GLOBAL_BROADCAST << DEOS_CAN_DESTINATION_SHIFT),
             .mask = ((uint32_t)DEOS_CAN_DESTINATION_MASK << DEOS_CAN_DESTINATION_SHIFT)
         };
         
         rx_filter_ids[filter_idx] = can_add_rx_filter(config->can_dev, deos_can_rx_callback, NULL, &broadcast_filter);
         if (rx_filter_ids[filter_idx] < 0) {
-            LOG_ERR("Failed to add broadcast RX filter: %d", rx_filter_ids[filter_idx]);
+            LOG_ERR("Failed to add global broadcast RX filter: %d", rx_filter_ids[filter_idx]);
+            for (int j = 0; j < filter_idx; j++) {
+                can_remove_rx_filter(config->can_dev, rx_filter_ids[j]);
+                rx_filter_ids[j] = -1;
+            }
+            return rx_filter_ids[filter_idx];
+        }
+        filter_idx++;
+
+        /* Filter for CAN Broadcast destination */
+        struct can_filter can_broadcast_filter = {
+            .flags = CAN_FILTER_IDE,
+            .id = ((uint32_t)DEOS_NODE_CAN_BROADCAST << DEOS_CAN_DESTINATION_SHIFT),
+            .mask = ((uint32_t)DEOS_CAN_DESTINATION_MASK << DEOS_CAN_DESTINATION_SHIFT)
+        };
+        
+        rx_filter_ids[filter_idx] = can_add_rx_filter(config->can_dev, deos_can_rx_callback, NULL, &can_broadcast_filter);
+        if (rx_filter_ids[filter_idx] < 0) {
+            LOG_ERR("Failed to add CAN broadcast RX filter: %d", rx_filter_ids[filter_idx]);
             for (int j = 0; j < filter_idx; j++) {
                 can_remove_rx_filter(config->can_dev, rx_filter_ids[j]);
                 rx_filter_ids[j] = -1;

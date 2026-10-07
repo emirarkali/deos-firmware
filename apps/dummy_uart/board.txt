@@ -1,1 +1,1 @@
-nucleo_f439zi
+nucleo_h7a3zi_q

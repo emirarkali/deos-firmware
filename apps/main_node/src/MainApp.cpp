@@ -11,8 +11,21 @@ MainApp& MainApp::getInstance() {
     return instance;
 }
 
+static const char* state_to_str(deos_state_t s) {
+    switch(s) {
+        case DEOS_STATE_INIT: return "INIT (0x00)";
+        case DEOS_STATE_STANDBY: return "STANDBY (0x01)";
+        case DEOS_STATE_READY: return "READY (0x02)";
+        case DEOS_STATE_ACTIVE: return "ACTIVE (0x03)";
+        case DEOS_STATE_CALIBRATING: return "CALIBRATING (0x04)";
+        case DEOS_STATE_SAFE: return "SAFE (0x05)";
+        case DEOS_STATE_FAULT: return "FAULT (0x06)";
+        default: return "UNKNOWN";
+    }
+}
+
 extern "C" {
-    void heartbeat_rx_callback(const deos_message_t *msg, void *user_data) {
+    int heartbeat_rx_callback(const deos_message_t *msg, void *user_data) {
         MainApp& app = MainApp::getInstance();
         
         deos_state_t reported_state = DEOS_STATE_UNKNOWN;
@@ -22,16 +35,38 @@ extern "C" {
         }
         
         app.network_monitor.update_heartbeat(msg->source, reported_state, app.current_state);
+        return 0;
+    }
+
+    int set_state_rx_callback(const deos_message_t *msg, void *user_data) {
+        MainApp& app = MainApp::getInstance();
+        
+        if (msg->payload_len == 1) {
+            deos_state_t req_state = (deos_state_t)msg->payload[0];
+            LOG_INF("Received SET_STATE command from Node 0x%02X: requesting state %s", msg->source, state_to_str(req_state));
+            app.set_state(req_state);
+            deos_send_response(msg, DEOS_RESULT_SUCCESS, NULL, 0);
+        } else {
+            LOG_WRN("Invalid SET_STATE payload length: %d", msg->payload_len);
+            deos_send_response(msg, DEOS_RESULT_INVALID_PARAMETER, NULL, 0);
+        }
+        return 0;
     }
 
     deos_transport_t c_routing_policy(deos_node_id_t destination) {
         if (destination == DEOS_NODE_GROUND_CONTROL) {
-            return DEOS_TRANSPORT_ETH_TEXTUAL;
+            return DEOS_TRANSPORT_UART_LORA;
         } else if (destination == DEOS_NODE_MICRO_ROS) {
             return DEOS_TRANSPORT_ETH_UROS;
-        } else if (destination >= DEOS_NODE_TRACTION && destination <= DEOS_NODE_DIAG_TOOL) {
+        } else if (destination == DEOS_NODE_DIAG_TOOL) {
+            return DEOS_TRANSPORT_ETH_TEXTUAL;
+        }
+        /* UART/LoRa testleri esnasinda CAN FD'ye gonderip sistemi kitlememesi icin kapali */
+        /*
+        else if (destination >= DEOS_NODE_TRACTION && destination <= DEOS_NODE_BMS_GATEWAY) {
             return DEOS_TRANSPORT_CAN_FD;
         }
+        */
         return DEOS_TRANSPORT_LOCAL;
     }
 }
@@ -61,10 +96,13 @@ int MainApp::init() {
         return ret;
     }
 
-    deos_register_router_policy(c_routing_policy);
+    deos_router_set_lookup_fn(c_routing_policy);
     
     /* DEOS çekirdeğine Heartbeat paketlerini nereye düşüreceğini söylüyoruz */
-    deos_register_handler(DEOS_SERVICE_SYSTEM, DEOS_CMD_SYSTEM_HEARTBEAT, heartbeat_rx_callback, NULL);
+    deos_register_handler(DEOS_CLASS_NETWORK, DEOS_SERVICE_SYSTEM, DEOS_CMD_SYSTEM_HEARTBEAT, heartbeat_rx_callback, NULL);
+
+    /* SET_STATE komutunu (Cmd: 0x02, Class: COMMAND) dinle */
+    deos_register_handler(DEOS_CLASS_COMMAND, DEOS_SERVICE_SYSTEM, DEOS_CMD_SYSTEM_SET_STATE, set_state_rx_callback, NULL);
 
     EthTextual::getInstance().init();
     EthUros::getInstance().init();
@@ -82,10 +120,10 @@ void MainApp::set_state(deos_state_t new_state) {
     deos_priority_t prio = (new_state == DEOS_STATE_SAFE || new_state == DEOS_STATE_FAULT) 
                             ? DEOS_PRIO_EMERGENCY : DEOS_PRIO_CONTROL;
 
-    deos_send(DEOS_NODE_BROADCAST, prio, DEOS_CLASS_COMMAND, DEOS_SERVICE_SYSTEM, 
+    deos_send(DEOS_NODE_GLOBAL_BROADCAST, prio, DEOS_CLASS_COMMAND, DEOS_SERVICE_SYSTEM, 
               DEOS_CMD_SYSTEM_SET_STATE, &current_state, sizeof(current_state));
 
-    LOG_INF("System State changed to: 0x%02X", current_state);
+    LOG_INF("System State changed to: %s", state_to_str(current_state));
 }
 
 void MainApp::run() {
@@ -97,18 +135,21 @@ void MainApp::run() {
     set_state(DEOS_STATE_STANDBY);
     
     uint32_t ms_counter = 0;
+    bool last_estop_state = safety_manager.is_estop_triggered();
 
     while (1) {
         bool estop_pressed = safety_manager.is_estop_triggered();
 
-        /* --- DONANIMSAL KESME / GÜVENLİK KONTROLÜ --- */
-        if (estop_pressed && current_state != DEOS_STATE_SAFE) {
+        /* --- DONANIMSAL KESME / GÜVENLİK KONTROLÜ (EDGE DETECTION) --- */
+        if (estop_pressed && !last_estop_state) {
             LOG_ERR("!!! EMERGENCY STOP TRIGGERED !!!");
             set_state(DEOS_STATE_SAFE);
-        } else if (!estop_pressed && current_state == DEOS_STATE_SAFE) {
+        } else if (!estop_pressed && last_estop_state) {
             LOG_INF("E-STOP Released.");
             set_state(DEOS_STATE_STANDBY);
         }
+        
+        last_estop_state = estop_pressed;
 
         /* --- NETWORK (NODE) WATCHDOG & HEARTBEAT --- */
         network_monitor.check_watchdog(*this);

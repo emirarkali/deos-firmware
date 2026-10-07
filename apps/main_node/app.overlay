@@ -19,13 +19,12 @@
     bus-speed-data = <2000000>;
 };
 
-/* Disable usart1 to prevent any conflicts with LoRa pins */
-&usart1 {
-    status = "disabled";
-};
-
 /* lpuart1 is configured for PB6/PB7 (LoRa UART) */
 &lpuart1 {
     status = "okay";
     current-speed = <115200>;
+};
+
+&gpioe {
+    status = "okay";
 };

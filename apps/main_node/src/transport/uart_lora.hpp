@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ITransport.hpp"
+#include "../ITransport.hpp"
 #include <zephyr/kernel.h>
 #include <zephyr/sys/ring_buffer.h>
 #include <zephyr/device.h>
@@ -38,4 +38,6 @@ private:
 
     struct k_msgq m_tx_q;
     char m_tx_q_buffer[16 * sizeof(deos_message_t)]; // LORA_TX_QUEUE_SIZE = 16
+
+    struct k_sem m_rx_sem;
 };

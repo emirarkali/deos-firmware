@@ -9,7 +9,7 @@ int deos_send_ping(
     deos_node_id_t destination,
     uint32_t ping_id)
 {
-    if (destination == DEOS_NODE_BROADCAST) {
+    if (destination == DEOS_NODE_GLOBAL_BROADCAST || destination == DEOS_NODE_CAN_BROADCAST) {
         LOG_ERR("Broadcast PING rejected");
         return -EINVAL; /* Do not allow broadcast ping to avoid response storm */
     }
@@ -58,7 +58,7 @@ int deos_send_heartbeat(deos_state_t current_state)
 
 void deos_handle_ping(const deos_message_t *msg)
 {
-    if (msg->destination == DEOS_NODE_BROADCAST) {
+    if (msg->destination == DEOS_NODE_GLOBAL_BROADCAST || msg->destination == DEOS_NODE_CAN_BROADCAST) {
         LOG_WRN("Broadcast PING from 0x%02X ignored", msg->source);
         return;
     }

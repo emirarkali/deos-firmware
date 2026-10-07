@@ -95,10 +95,10 @@ int deos_register_handler(
 void deos_dispatch(const deos_message_t *msg, deos_transport_t incoming_transport)
 {
     const struct deos_config *config = deos_get_config();
-    bool is_local = deos_is_local_node(msg->destination) || (msg->destination == DEOS_NODE_BROADCAST);
+    bool is_local = deos_is_local_node(msg->destination) || (msg->destination == DEOS_NODE_GLOBAL_BROADCAST) || (msg->destination == DEOS_NODE_CAN_BROADCAST);
 
     /* Router Logic */
-    if (config->router_enabled && (!deos_is_local_node(msg->destination) || msg->destination == DEOS_NODE_BROADCAST)) {
+    if (config->router_enabled && (!deos_is_local_node(msg->destination) || msg->destination == DEOS_NODE_GLOBAL_BROADCAST || msg->destination == DEOS_NODE_CAN_BROADCAST)) {
         deos_route_message(msg, incoming_transport);
     }
 
@@ -138,7 +138,7 @@ void deos_dispatch(const deos_message_t *msg, deos_transport_t incoming_transpor
     bool handled = false;
     for (int i = 0; i < DEOS_MAX_HANDLERS; i++) {
         if (handler_registry[i].in_use &&
-            (handler_registry[i].local_node == msg->destination || msg->destination == DEOS_NODE_BROADCAST) &&
+            (handler_registry[i].local_node == msg->destination || msg->destination == DEOS_NODE_GLOBAL_BROADCAST || msg->destination == DEOS_NODE_CAN_BROADCAST) &&
             handler_registry[i].message_class == msg->message_class &&
             handler_registry[i].service == msg->service &&
             handler_registry[i].command == msg->command) {

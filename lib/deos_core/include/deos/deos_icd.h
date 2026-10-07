@@ -84,7 +84,9 @@ typedef enum {
 
     DEOS_NODE_DIAG_TOOL      = 0xF0,
 
-    DEOS_NODE_BROADCAST      = 0xFF
+    DEOS_NODE_CAN_BROADCAST      = 0xFE,
+    DEOS_NODE_GLOBAL_BROADCAST   = 0xFF,
+    DEOS_NODE_BROADCAST          = 0xFF /* Alias */
 } deos_node_id_t;
 
 /*

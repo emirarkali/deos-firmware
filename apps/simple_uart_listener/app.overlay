@@ -1,0 +1,15 @@
+/ {
+    aliases {
+        lora-uart = &lpuart1;
+    };
+};
+
+/* lpuart1 is configured for PB6(TX)/PB7(RX) (D1/D0 on Nucleo-H563ZI) */
+&lpuart1 {
+    status = "okay";
+    current-speed = <115200>;
+};
+
+&gpioe {
+    status = "okay";
+};
