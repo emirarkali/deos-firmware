@@ -15,10 +15,7 @@
     pinctrl-names = "default";
 };
 
-/* Disable usart1 to prevent any conflicts with LoRa pins */
-&usart1 {
-    status = "disabled";
-};
+
 
 /* LoRa UART Physical Pin Mapping */
 &lpuart1 {

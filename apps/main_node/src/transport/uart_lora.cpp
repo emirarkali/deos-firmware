@@ -6,6 +6,9 @@
 #include <deos/deos.h>
 #include <deos/deos_fault.h>
 
+#define LORA_AUX_NODE DT_NODELABEL(lora_aux)
+static const struct gpio_dt_spec aux_pin = GPIO_DT_SPEC_GET(LORA_AUX_NODE, gpios);
+
 LOG_MODULE_REGISTER(uart_lora, LOG_LEVEL_INF);
 
 #define LORA_TX_QUEUE_SIZE 16
@@ -235,20 +238,17 @@ void UartLora::rx_thread() {
 }
 
 int UartLora::init() {
-    const struct device *gpioe = DEVICE_DT_GET(DT_NODELABEL(gpioe));
-
     if (!device_is_ready(m_uart_dev)) {
         LOG_ERR("LoRa UART device not ready!");
         return -ENODEV;
     }
 
-    /* M0 ve M1 pinleri PG14 ile çakışmaması için M0=D3(PE13), M1=D4(PE14) olarak değiştirildi */
-    if (device_is_ready(gpioe)) {
-        // M0 ve M1 donanimsal olarak GND'ye bagli oldugu icin konfigure etmiyoruz.
-        // D4 (PE14) pini AUX olarak kullanilacak
-        gpio_pin_configure(gpioe, 14, GPIO_INPUT); /* AUX (D4) -> INPUT */
+    if (!gpio_is_ready_dt(&aux_pin)) {
+        LOG_WRN("LoRa AUX pin not ready");
     } else {
-        LOG_WRN("gpioe for M0/M1 not ready");
+        // M0 ve M1 donanimsal olarak GND'ye bagli oldugu icin konfigure etmiyoruz.
+        // AUX pini DT uzerinden konfigure ediliyor
+        gpio_pin_configure_dt(&aux_pin, GPIO_INPUT);
     }
 
     uart_irq_callback_user_data_set(m_uart_dev, uart_rx_cb, this);
