@@ -29,6 +29,12 @@
 };
 
 /* LoRa AUX Physical Pin Mapping */
-&lora_aux {
-    gpios = <&gpioe 14 GPIO_ACTIVE_HIGH>;
+/ {
+    lora_module {
+        compatible = "gpio-keys";
+        lora_aux: lora_aux {
+            gpios = <&gpioe 14 GPIO_ACTIVE_HIGH>;
+            label = "LoRa AUX Pin";
+        };
+    };
 };

@@ -23,7 +23,17 @@ cd deos_workspace
 west update
 ```
 
-Bu komutlardan sonra Zephyr ortamınız ve gerekli tüm modüller (micro-ROS dahil) derlemeye hazır hale gelecektir.
+Bu komutlardan sonra Zephyr ortamınız ve gerekli tüm modüller (micro-ROS dahil) inmiş olacaktır.
+
+### 4. micro-ROS Derleyici Araçlarını Kurun
+
+micro-ROS kütüphanesinin C kodlarının derlenebilmesi için Python sanal ortamınıza (`.venv`) gerekli derleme araçlarını kurmanız zorunludur. Aşağıdaki komutu **Zephyr sanal ortamınız (virtual environment) aktifken** çalıştırın:
+
+```bash
+pip install catkin_pkg lark-parser empy colcon-common-extensions
+```
+
+Bu adımı da tamamladıktan sonra projeniz derlenmeye hazırdır.
 
 ---
 

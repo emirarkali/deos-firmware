@@ -1,9 +1,0 @@
-/ {
-	chosen {
-		zephyr,canbus = &can_loopback0;
-	};
-};
-
-&can_loopback0 {
-	status = "okay";
-};

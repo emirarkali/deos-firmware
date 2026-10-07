@@ -13,13 +13,6 @@
     chosen {
         zephyr,can-primary = &fdcan1;
     };
-    
-    lora_module {
-        compatible = "gpio-keys";
-        lora_aux: lora_aux {
-            label = "LoRa AUX Pin";
-        };
-    };
 };
 
 /* Enable Primary CAN (FDCAN1) */

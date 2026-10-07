@@ -9,7 +9,7 @@ manifest:
     # Zephyr çekirdeğini otomatik indirir ve kendi bağımlılıklarını (import) çözer
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: main
+      revision: 54b57d25e0e
       import: true
       
     # micro-ROS Zephyr modülünü otomatik indirir
