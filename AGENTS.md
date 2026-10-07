@@ -20,3 +20,6 @@ These rules apply to ALL AI assistants, coders, and agents (Gemini, Claude, Deep
 ## 3. Git Workflow
 
 - **Syncing Changes**: AI agents must always execute a `git pull` before starting any task, and a `git push` after the work is finished to keep the repository synchronized.
+
+## 4. Architectural Knowledge Base
+- **MANDATORY READING**: Before modifying network routing, LoRa/UART code, or adding new test scripts, you MUST read the `docs/DEOS_ARCHITECTURE_KNOWLEDGE.md` file. It contains the history of zero-latency optimizations, Split Horizon routing rules, and node ID mapping (e.g. GROUND_CONTROL vs DIAG_TOOL) that we spent hours debugging. Do not act blindly.
