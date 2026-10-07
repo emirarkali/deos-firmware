@@ -7,8 +7,11 @@
         zephyr,can-primary = &fdcan1;
     };
     
-    aliases {
-        lora-uart = &lpuart1;
+    lora_module {
+        compatible = "gpio-keys";
+        lora_aux: lora_aux {
+            label = "LoRa AUX Pin";
+        };
     };
 };
 
@@ -19,12 +22,5 @@
     bus-speed-data = <2000000>;
 };
 
-/* lpuart1 is configured for PB6/PB7 (LoRa UART) */
-&lpuart1 {
-    status = "okay";
-    current-speed = <115200>;
-};
 
-&gpioe {
-    status = "okay";
-};
+

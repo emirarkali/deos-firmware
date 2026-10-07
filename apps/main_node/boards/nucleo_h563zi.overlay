@@ -1,0 +1,23 @@
+/*
+ * Zephyr Devicetree Overlay for DEOS Main STM32 Gateway
+ * Board: NUCLEO-H563ZI
+ * 
+ * Note: If you need to remap pins or change board-specific hardware settings
+ * for the H5 board, place them here. 
+ * General application settings (like CAN bus speed) should remain in app.overlay.
+ */
+
+&lora_aux {
+    gpios = <&gpioe 14 GPIO_ACTIVE_HIGH>;
+};
+
+/ {
+    aliases {
+        lora-uart = &lpuart1;
+    };
+};
+
+&lpuart1 {
+    status = "okay";
+    current-speed = <115200>;
+};
