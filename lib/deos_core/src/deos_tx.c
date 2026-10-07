@@ -61,6 +61,7 @@ int deos_internal_canfd_tx(const deos_message_t *msg)
 {
     if (k_msgq_put(&tx_msgq, msg, K_NO_WAIT) != 0) {
         LOG_WRN("TX Queue full, dropping message");
+        deos_fault_raise(DEOS_FAULT_TX_FAILURE, DEOS_FAULT_SEVERITY_WARNING);
         return -ENOSPC;
     }
     return 0;
