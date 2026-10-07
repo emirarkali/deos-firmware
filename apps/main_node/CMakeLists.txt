@@ -15,6 +15,7 @@ target_sources(app PRIVATE
     src/MainApp.cpp
     src/io/LedController.cpp
     src/io/SafetyManager.cpp
+    src/io/ImuSensor.cpp
     src/network/NetworkMonitor.cpp
     src/transport/eth_textual.cpp
     src/transport/eth_ros_bridge.cpp

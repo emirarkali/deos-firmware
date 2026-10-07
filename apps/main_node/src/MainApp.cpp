@@ -2,6 +2,7 @@
 #include "transport/eth_textual.hpp"
 #include "transport/eth_ros_bridge.hpp"
 #include "transport/uart_lora.hpp"
+#include "io/ImuSensor.hpp"
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(main_node_app, LOG_LEVEL_INF);
@@ -69,40 +70,6 @@ extern "C" {
         */
         return DEOS_TRANSPORT_LOCAL;
     }
-
-    /* Dummy IMU Thread */
-    static struct k_thread imu_thread_data;
-    static K_KERNEL_STACK_DEFINE(imu_thread_stack, 1024);
-
-    static void imu_thread_func(void *p1, void *p2, void *p3) {
-        uint32_t counter = 0;
-        while (1) {
-            struct deos_sensor_imu_payload imu_data = {0};
-            
-            /* Generate some fake data for testing */
-            imu_data.accel_x = 100; /* 1.0 m/s^2 */
-            imu_data.accel_y = 50;  /* 0.5 m/s^2 */
-            imu_data.accel_z = 981; /* 9.81 m/s^2 */
-            
-            imu_data.gyro_x = 0;
-            imu_data.gyro_y = 0;
-            imu_data.gyro_z = (int16_t)((counter % 200) - 100); /* Swaying gyro -1.0 to 1.0 deg/s */
-
-            deos_send_from_node(
-                DEOS_NODE_IMU,
-                DEOS_NODE_MICRO_ROS,
-                DEOS_PRIO_STATUS,
-                DEOS_CLASS_STATUS,
-                DEOS_SERVICE_SENSORS,
-                DEOS_CMD_SENSOR_IMU_DATA,
-                &imu_data,
-                sizeof(imu_data)
-            );
-
-            counter++;
-            k_sleep(K_MSEC(100)); /* 10 Hz */
-        }
-    }
 }
 
 int MainApp::init() {
@@ -132,19 +99,6 @@ int MainApp::init() {
 
     deos_router_set_lookup_fn(c_routing_policy);
     
-    /* Register IMU Virtual Node */
-    deos_add_local_node(DEOS_NODE_IMU);
-
-    /* Start the dummy IMU thread */
-    k_thread_create(
-        &imu_thread_data,
-        imu_thread_stack,
-        K_KERNEL_STACK_SIZEOF(imu_thread_stack),
-        imu_thread_func,
-        NULL, NULL, NULL,
-        7, 0, K_NO_WAIT
-    );
-    
     /* DEOS çekirdeğine Heartbeat paketlerini nereye düşüreceğini söylüyoruz */
     deos_register_handler(DEOS_CLASS_NETWORK, DEOS_SERVICE_SYSTEM, DEOS_CMD_SYSTEM_HEARTBEAT, heartbeat_rx_callback, NULL);
 
@@ -154,6 +108,7 @@ int MainApp::init() {
     EthTextual::getInstance().init();
     EthRosBridge::getInstance().init();
     UartLora::getInstance().init();
+    ImuSensor::getInstance().init();
 
     return 0;
 }
