@@ -1,6 +1,6 @@
 #include "MainApp.hpp"
 #include "transport/eth_textual.hpp"
-#include "transport/eth_uros.hpp"
+#include "transport/eth_ros_bridge.hpp"
 #include "transport/uart_lora.hpp"
 #include <zephyr/logging/log.h>
 
@@ -105,7 +105,7 @@ int MainApp::init() {
     deos_register_handler(DEOS_CLASS_COMMAND, DEOS_SERVICE_SYSTEM, DEOS_CMD_SYSTEM_SET_STATE, set_state_rx_callback, NULL);
 
     EthTextual::getInstance().init();
-    EthUros::getInstance().init();
+    EthRosBridge::getInstance().init();
     UartLora::getInstance().init();
 
     return 0;
