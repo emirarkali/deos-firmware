@@ -1,12 +1,6 @@
+/* ANA UYGULAMA OVERLAY DOSYASI (app.overlay) */
 / {
     aliases {
         lora-uart = &usart6;
     };
-};
-
-&usart6 {
-    status = "okay";
-    current-speed = <115200>;
-    pinctrl-0 = <&usart6_tx_pg14 &usart6_rx_pg9>;
-    pinctrl-names = "default";
 };

@@ -1,0 +1,9 @@
+/* KARTA ÖZEL OVERLAY DOSYASI */
+&lpuart1 {
+    status = "okay";
+    current-speed = <115200>;
+};
+
+&gpioe {
+    status = "okay";
+};

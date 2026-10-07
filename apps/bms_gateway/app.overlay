@@ -1,3 +1,4 @@
+/* ANA UYGULAMA OVERLAY DOSYASI (app.overlay) */
 / {
     aliases {
         deos-can = &fdcan1;  /* DEOS Omurgasi icin (CAN-FD) */
@@ -5,28 +6,13 @@
     };
 };
 
-&pinctrl {
-    fdcan2_rx_pb5: fdcan2_rx_pb5 {
-        pinmux = <STM32_PINMUX('B', 5, AF9)>;
-    };
-    fdcan2_tx_pb6: fdcan2_tx_pb6 {
-        pinmux = <STM32_PINMUX('B', 6, AF9)>;
-    };
-};
-
-/* DEOS Omurgasi - CAN-FD Modunda (500k / 2M) */
 &fdcan1 {
     status = "okay";
     bus-speed = <500000>;
     bus-speed-data = <2000000>;
-    
-    /* nucleo_h563zi kartinda fdcan1 icin RX=PD0, TX=PD1 varsayilan olarak tanimlidir. */
 };
 
-/* DALY Bataryalari - Classic CAN (250k) */
 &fdcan2 {
     status = "okay";
     bus-speed = <250000>;
-    pinctrl-0 = <&fdcan2_rx_pb5 &fdcan2_tx_pb6>; /* PB5 ve PB6 pinlerine atandi */
-    pinctrl-names = "default";
 };

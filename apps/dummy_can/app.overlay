@@ -1,3 +1,4 @@
+/* ANA UYGULAMA OVERLAY DOSYASI (app.overlay) */
 / {
     chosen {
         zephyr,can-primary = &fdcan1;

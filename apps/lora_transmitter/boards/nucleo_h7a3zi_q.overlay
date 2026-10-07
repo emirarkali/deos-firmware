@@ -1,0 +1,9 @@
+/* KARTA ÖZEL OVERLAY DOSYASI */
+&usart1 {
+    status = "disabled";
+};
+
+&lpuart1 {
+    status = "okay";
+    current-speed = <115200>;
+};

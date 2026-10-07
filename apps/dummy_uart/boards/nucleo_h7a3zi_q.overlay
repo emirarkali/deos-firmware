@@ -1,0 +1,16 @@
+/* KARTA ÖZEL OVERLAY DOSYASI */
+&pinctrl {
+    usart6_tx_pg14: usart6_tx_pg14 {
+        pinmux = <STM32_PINMUX('G', 14, AF7)>;
+    };
+    usart6_rx_pg9: usart6_rx_pg9 {
+        pinmux = <STM32_PINMUX('G', 9, AF7)>;
+    };
+};
+
+&usart6 {
+    status = "okay";
+    current-speed = <115200>;
+    pinctrl-0 = <&usart6_tx_pg14 &usart6_rx_pg9>;
+    pinctrl-names = "default";
+};

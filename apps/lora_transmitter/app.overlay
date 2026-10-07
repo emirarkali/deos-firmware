@@ -1,16 +1,6 @@
+/* ANA UYGULAMA OVERLAY DOSYASI (app.overlay) */
 / {
     aliases {
         lora-uart = &lpuart1;
     };
-};
-
-/* Disable usart1 to prevent any conflicts */
-&usart1 {
-    status = "disabled";
-};
-
-/* lpuart1 is already configured for PB6/PB7 in Zephyr's default H563ZI board file */
-&lpuart1 {
-    status = "okay";
-    current-speed = <115200>;
 };
