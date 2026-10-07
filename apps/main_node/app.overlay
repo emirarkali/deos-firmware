@@ -1,5 +1,12 @@
 /*
- * Zephyr Devicetree Overlay for DEOS Main STM32 Gateway
+ * ==============================================================================
+ * ANA UYGULAMA OVERLAY DOSYASI (app.overlay)
+ * ==============================================================================
+ * Amacı: Bu dosya, uygulamanın donanımdan bağımsız "iskelet" yapısını kurar.
+ * Hangi karta derlenirse derlensin her zaman geçerli olan ortak ayarları içerir.
+ * Fiziksel pin atamaları BURADA YAPILMAZ! Pin atamaları 'boards/' klasöründeki
+ * karta özel overlay dosyalarında yapılır.
+ * ==============================================================================
  */
 
 / {

@@ -1,6 +1,12 @@
 /*
- * Zephyr Devicetree Overlay for DEOS Main STM32 Gateway
- * Board: NUCLEO-H7A3ZI-Q
+ * ==============================================================================
+ * KARTA ÖZEL OVERLAY DOSYASI (boards/nucleo_h7a3zi_q.overlay)
+ * ==============================================================================
+ * Hedef Kart: NUCLEO-H7A3ZI-Q (STM32H7)
+ * Amacı: app.overlay dosyasında tanımlanan iskeletin (node ve alias'ların),
+ * bu spesifik karta ait fiziksel pinlere ve donanımlara (UART, GPIO vb.) 
+ * nasıl bağlanacağını (kablolanacağını) belirler.
+ * ==============================================================================
  */
 
 / {
