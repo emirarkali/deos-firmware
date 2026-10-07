@@ -18,44 +18,14 @@ DEOS_PRIO_CONTROL = 2
 
 # DEOS Message Classes
 DEOS_CLASS_COMMAND = 0x01
-DEOS_CLASS_REQUEST = 0x04
 DEOS_CLASS_RESPONSE = 0x05
 
 # DEOS Services
 DEOS_SERVICE_SYSTEM = 0x00
-DEOS_SERVICE_DIAGNOSTIC = 0x06
 
 # DEOS SYSTEM Commands
 DEOS_CMD_SYSTEM_SET_STATE = 0x02
 DEOS_CMD_SYSTEM_HEARTBEAT = 0x07
-
-# DEOS DIAGNOSTIC Commands
-DEOS_CMD_DIAG_GET_FAULTS = 0x02
-
-FAULT_SEVERITY = {
-    1: "INFO",
-    2: "WARNING",
-    3: "ERROR",
-    4: "CRITICAL"
-}
-
-FAULT_STATE = {
-    0: "INACTIVE",
-    1: "ACTIVE",
-    2: "LATCHED"
-}
-
-FAULT_NAMES = {
-    0: "END_OF_LIST",
-    1: "INTERNAL_SOFTWARE_ERROR",
-    2: "WATCHDOG_RESET",
-    3: "INVALID_CONFIGURATION",
-    4: "COMMUNICATION_TIMEOUT",
-    5: "RX_QUEUE_OVERFLOW",
-    6: "TX_FAILURE",
-    7: "PROTOCOL_ERROR",
-    8: "LOCAL_STORAGE_ERROR"
-}
 
 # State Definitions (from deos_icd.h)
 DEOS_STATE_INIT = 0x00
@@ -133,14 +103,6 @@ class DeosStateController:
         full_payload = header + payload
         self.send_lora_frame(LORA_FLAG_NONE, full_payload)
 
-    def get_faults(self, dest_node):
-        header = struct.pack('<BBBBBBBB',
-            DEOS_PRIO_CONTROL, DEOS_CLASS_REQUEST, DEOS_SERVICE_DIAGNOSTIC, 
-            dest_node, DEOS_NODE_GROUND_CONTROL, 0x11, self.seq, DEOS_CMD_DIAG_GET_FAULTS
-        )
-        self.seq = (self.seq + 1) & 0xFF
-        self.send_lora_frame(LORA_FLAG_NONE, header) # Empty payload for GET_FAULTS
-
     def rx_thread(self):
         state = 0
         rx_flag = 0
@@ -217,20 +179,6 @@ class DeosStateController:
                     res_str = "SUCCESS" if result == 0 else f"ERROR ({result})"
                     tprint(f"[RESPONSE] SET_STATE Cevabi (Node 0x{src:02X}): {res_str}")
 
-        elif service == DEOS_SERVICE_DIAGNOSTIC:
-            if msg_class == DEOS_CLASS_RESPONSE and cmd == DEOS_CMD_DIAG_GET_FAULTS:
-                if len(msg_payload) >= 10:
-                    fault_id, severity, state, count, time_ms = struct.unpack('<HBBHI', msg_payload[:10])
-                    
-                    if fault_id == 0x0000:
-                        tprint(f"[FAULTS] --- Liste Sonu (Node 0x{src:02X}) ---")
-                    else:
-                        fname = FAULT_NAMES.get(fault_id, f"UNKNOWN(0x{fault_id:04X})")
-                        sev_str = FAULT_SEVERITY.get(severity, f"UNK({severity})")
-                        state_str = FAULT_STATE.get(state, f"UNK({state})")
-                        
-                        tprint(f"[FAULTS] Node 0x{src:02X} -> {fname} | Sev: {sev_str} | Durum: {state_str} | Kez: {count} | Son MS: {time_ms}")
-
     def run(self):
         t = threading.Thread(target=self.rx_thread, daemon=True)
         t.start()
@@ -238,8 +186,7 @@ class DeosStateController:
         tprint("--- DEOS State Controller Baslatildi ---")
         tprint("Kullanabileceginiz State komutlari:")
         tprint("0 = INIT, 1 = STANDBY, 2 = READY, 3 = ACTIVE, 4 = CALIBRATING, 5 = SAFE, 6 = FAULT")
-        tprint("f = GET FAULTS (Hatalari Listele)")
-        tprint("Gondermek istediginiz numarayi veya harfi yazip ENTER'a basin. (Cikmak icin q)")
+        tprint("Gondermek istediginiz numarayi yazip ENTER'a basin. (Cikmak icin q)")
         
         try:
             while True:
@@ -254,11 +201,8 @@ class DeosStateController:
                         self.set_state(DEOS_NODE_MAIN_STM32, val)
                     else:
                         tprint("Gecersiz State numarasi!")
-                elif user_input.lower() == 'f':
-                    tprint(f"\n[TX] Ana Node (STM32) -> GET_FAULTS komutu gonderiliyor...")
-                    self.get_faults(DEOS_NODE_MAIN_STM32)
                 else:
-                    tprint("Lutfen 0-6 arasi bir rakam veya 'f' girin.")
+                    tprint("Lutfen 0-6 arasi bir rakam girin.")
                     
         except KeyboardInterrupt:
             pass
