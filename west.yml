@@ -1,0 +1,23 @@
+manifest:
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+    - name: micro-ROS
+      url-base: https://github.com/micro-ROS
+
+  projects:
+    # Zephyr çekirdeğini otomatik indirir ve kendi bağımlılıklarını (import) çözer
+    - name: zephyr
+      remote: zephyrproject-rtos
+      revision: main
+      import: true
+      
+    # micro-ROS Zephyr modülünü otomatik indirir
+    - name: micro_ros_zephyr_module
+      remote: micro-ROS
+      revision: main
+      path: modules/lib/micro_ros_zephyr_module
+
+  self:
+    # Bu projenin workspace (çalışma alanı) içindeki konumunu belirtir
+    path: applications/deos_firmware
