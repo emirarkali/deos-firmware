@@ -12,6 +12,7 @@
 / {
     aliases {
         lora-uart = &lpuart1;
+        led2 = &red_led_1;
     };
 };
 
