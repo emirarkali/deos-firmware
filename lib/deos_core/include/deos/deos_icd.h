@@ -76,6 +76,7 @@ typedef enum {
     DEOS_NODE_TRACTION       = 0x10,
     DEOS_NODE_STEERING       = 0x11,
     DEOS_NODE_BRAKE          = 0x12,
+    DEOS_NODE_IMU            = 0x13,
 
     DEOS_NODE_BMS_MAIN       = 0x20,
     DEOS_NODE_BMS_AUX        = 0x21,
@@ -120,7 +121,8 @@ typedef enum {
     DEOS_SERVICE_BRAKE        = 0x03,
     DEOS_SERVICE_BMS          = 0x04,
     DEOS_SERVICE_CALIBRATION  = 0x05,
-    DEOS_SERVICE_DIAGNOSTIC   = 0x06
+    DEOS_SERVICE_DIAGNOSTIC   = 0x06,
+    DEOS_SERVICE_SENSORS      = 0x07
 } deos_service_id_t;
 
 /*
@@ -272,6 +274,13 @@ typedef enum {
     DEOS_CMD_DIAG_GET_FAULTS   = 0x02,
     DEOS_CMD_DIAG_CLEAR_FAULTS = 0x03
 } deos_diagnostic_command_t;
+
+/*
+ * SENSORS Commands
+ */
+typedef enum {
+    DEOS_CMD_SENSOR_IMU_DATA   = 0x01
+} deos_sensors_command_t;
 
 /*
  * Parameter Commands

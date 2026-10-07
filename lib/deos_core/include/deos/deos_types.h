@@ -211,6 +211,21 @@ struct deos_brake_status_payload {
     uint8_t  park_brake_state;
 } __attribute__((packed));
 
+/*
+ * SENSORS Status Payload
+ */
+struct deos_sensor_imu_payload {
+    int16_t accel_x;    /* 0.01 m/s^2 */
+    int16_t accel_y;
+    int16_t accel_z;
+    int16_t gyro_x;     /* 0.01 deg/s */
+    int16_t gyro_y;
+    int16_t gyro_z;
+    int16_t mag_x;      /* 1 uT or mG (Depends on sensor scaling, typical uT) */
+    int16_t mag_y;
+    int16_t mag_z;
+} __attribute__((packed));
+
 #ifdef __cplusplus
 }
 #endif
