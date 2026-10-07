@@ -15,7 +15,7 @@ manifest:
     # micro-ROS Zephyr modülünü otomatik indirir
     - name: micro_ros_zephyr_module
       remote: micro-ROS
-      revision: main
+      revision: humble
       path: modules/lib/micro_ros_zephyr_module
 
   self:
