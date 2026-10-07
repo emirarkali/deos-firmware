@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
+set(ZEPHYR_EXTRA_MODULES ${CMAKE_CURRENT_LIST_DIR}/../../../../modules/lib/micro_ros/modules/libmicroros CACHE STRING "micro-ROS")
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(deos_firmware)
@@ -28,3 +29,4 @@ zephyr_include_directories(../../lib/deos_core/include)
 
 # Disable thread-safe statics for C++ to prevent __cxa_guard_* linker errors
 target_compile_options(app PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fno-threadsafe-statics>)
+zephyr_compile_definitions(__errno_t=int __rsize_t=size_t)
